@@ -19,31 +19,54 @@ const workoutSchema = new mongoose.Schema({
   content: String
 })
 
-const Workout = mongoose.model('Workout', workoutSchema)
+const Workout = mongoose.model('Workout', workoutSchema);
 
 //get all workouts
 app.get('/workouts', async (req, res) => {
-  const workouts = await Workout.find()
-  res.send(workouts)
+  try {
+    const workouts = await Workout.find()
+    res.send(workouts)
+  } catch (error) {
+    res.status(500).send({ error: 'Error fetching posts' });
+  }
+  
 })
 
 //get one workout
 app.get('/workouts/:id', async (req, res) => {
-  const workout = await Workout.findById(req.params.id)
-  res.send(workout)
+  try {
+    const workout = await Workout.findById(req.params.id)
+    if (!post) {
+      return res.status(404).send({ error: 'Post not found' });
+    }
+    res.send(workout)
+  } catch (error) {
+    res.status(500).send({ error: 'Error fetching the post' });
+  }
+  
 })
 
 //create new post
 app.post('/workouts', async (req, res) => {
-  const newWorkout = new Workout(req.body)
-  const savedWorkout = await newWorkout.save()
-  res.send(savedWorkout)
+  try {
+    const newWorkout = new Workout(req.body)
+    const savedWorkout = await newWorkout.save()
+    res.send(savedWorkout)
+  } catch (error) {
+    res.status(500).send({ error: 'Error creating a new post' });
+  }
+  
 })
 
 //delete.get
 app.delete('/workouts/:id', async (req, res) => {
-  await Workout.findByIdAndDelete(req.params.id)
-  res.status(200).send('Workout deleted')
+  try {
+    await Workout.findByIdAndDelete(req.params.id)
+    res.status(200).send('Workout deleted')
+  } catch (error) {
+    res.status(500).send({ error: 'Error deleting the post' });
+  }
+  
 })
 
 app.listen(5500, () => console.log('Server started on port 5500'))
