@@ -21,4 +21,21 @@ const WorkoutPage = () => {
     };
     fetchWorkout();
   },[id]);
+
+  return(
+    <Container className='mt-4'>
+      <Card>
+        <div style={{maxHeight: '500px', overflow:'hidden'}}>
+          <Card.Img className='img-fluid' variant='top' src={workout.image} alt={workout.title} />
+        </div>
+        <Card.Body>
+          <Card.Title>{workout.title}</Card.Title>
+          <Card.Subtitle className='mb-2 text-muted'>By: {workout.author}</Card.Subtitle>
+          <Card.Text>{workout.content}</Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
 };
+
+export default WorkoutPage;
