@@ -16,7 +16,7 @@ const WorkoutPage = () => {
   // hook to perform an operation once and then perform it again if certain conditions are met
   useEffect(() => {
     const fetchWorkout = async () => {
-      const res = await axios.get(`http://localhost:5500/posts/${id}`);
+      const res = await axios.get(`http://localhost:5000/workouts/${id}`);
       setWorkout(res.data);
     };
     fetchWorkout();

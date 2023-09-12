@@ -10,15 +10,17 @@ const NavBar = () => {
       </LinkContainer>
       <Navbar.Toggle aria-controls='basic-navbar-nav'/>
       <Navbar.Collapse id='basic-navbar-nav'>
-        <Nav classname='ml-auto'>
+        <Nav className='ml-auto'>
           <LinkContainer to='/'>
-            <Navbar.Brand>Home</Navbar.Brand>
+            <Nav.Link>Home</Nav.Link>
           </LinkContainer>
-          <LinkContainer to='/posts/new'>
-            <Navbar.Brand>Create Workout</Navbar.Brand>
+          <LinkContainer to='/workouts/new'>
+            <Nav.Link>Create Workout</Nav.Link>
           </LinkContainer>
         </Nav>
       </Navbar.Collapse>
     </Navbar>
   )
 };
+
+export default NavBar;

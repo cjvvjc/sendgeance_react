@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container } from 'react-bootstrap';
@@ -18,12 +18,13 @@ const NewWorkoutPage = () => {
 
   // event handler for key press in form box
   const handleChange = e => {
-    setWorkout({...workout, [e.target.name]: e.target.value}) //take all existing data (...post) and add to it [name of box where tying]: what they are typing
+    setWorkout({...workout, [e.target.name]: e.target.value}) //take all existing data (...workout) and add to it [name of box where tying]: what they are typing
   };
 
   const handleSubmit = async e => {
+    console.log("YES!", e)
     e.preventDefault();
-    await axios.post('http://localhost:5500/posts', workout);
+    await axios.post('http://localhost:5000/workouts', workout);
     navigate('/');
   };
 
@@ -34,22 +35,26 @@ const NewWorkoutPage = () => {
           <Form.Label>Tilte</Form.Label>
           <Form.Control type="text" name="title" placeholder="Title" onChange={handleChange}/>
         </Form.Group>
+
         <Form.Group>
           <Form.Label>Author</Form.Label>
           <Form.Control  type="text" name="author" placeholder="Author" onChange={handleChange}/>
         </Form.Group>
+
         <Form.Group>
           <Form.Label>Image URL</Form.Label>
           <Form.Control  type="text" name="image" placeholder="Image URL" onChange={handleChange}/>
         </Form.Group>
+
         <Form.Group>
           <Form.Label>Content</Form.Label>
-          <Form.Control  type="textarea" rows={3} name="content" placeholder="Content" onChange={handleChange}/>
+          <Form.Control  as="textarea" rows={3} name="content" placeholder="Content" onChange={handleChange}/>
         </Form.Group>
+      
+        <Button variant="primary" type="submit">
+          Create
+        </Button>
       </Form>
-      <Button variant="primary" type="submit">
-        Create
-      </Button>
     </Container>
   );
 };
