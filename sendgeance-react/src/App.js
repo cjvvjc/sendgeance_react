@@ -3,6 +3,7 @@ import {Route, BrowserRouter as Router, Routes} from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import NewWorkoutPage from './pages/NewWorkoutPage';
 import WorkoutPage from './pages/WorkoutPage';
+import EditWorkoutPage from './pages/EditWorkoutPage';
 import NavBar from './components/NavBar';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<HomePage/>} />
         <Route path="/workouts/new" element={<NewWorkoutPage/>} />
         <Route path="/workouts/:id" element={<WorkoutPage/>} />
+        <Route path="/workout/edit/:id" element={<EditWorkoutPage/>} />
       </Routes>
     </Router>
   );

@@ -22,7 +22,6 @@ const NewWorkoutPage = () => {
   };
 
   const handleSubmit = async e => {
-    console.log("YES!", e)
     e.preventDefault();
     await axios.post('http://localhost:5000/workouts', workout);
     navigate('/');

@@ -36,6 +36,9 @@ const HomePage = () => {
                 <Link to={`/workouts/${workout._id}`}>
                   <Button variant='primary' className='mr-2'>Read More</Button>
                 </Link>
+                <Link to={`/workout/edit/${workout._id}`}>
+                  <Button variant='secondary'>Edit</Button>
+                </Link>
                 <Button variant='danger' onClick={() => handleDelete(workout._id)}>Delete</Button>
               </Card.Body>
             </Card>
