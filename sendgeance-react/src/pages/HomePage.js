@@ -16,8 +16,9 @@ const HomePage = () => {
   
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/workouts/${id}`); // remove from database
-      setWorkouts(workouts.filter((workouts) => workouts._id !== id)); // update state, filter it, remove item from state
+      await axios.delete(`http://localhost:5000/workouts/${id}`);
+      setWorkouts(prevWorkouts => prevWorkouts.filter(workout => workout._id !== id));
+      
     } catch (error) {
       console.error('Error deleting workout', error);
     };
@@ -29,10 +30,12 @@ const HomePage = () => {
         {workouts.map((workout) => (
           <Col md={4} className='mb-4' key={workout._id}>
             <Card style={{width: '18rem'}}>
-              <Card.Img variant='top' src={workout.image} alt={workout.title} />
+              {/* <Card.Img variant='top' src={workout.send} alt="" /> */}
               <Card.Body>
-                <Card.Title>{workout.title}</Card.Title>
-                <Card.Text>{workout.author}</Card.Text>
+                <Card.Title>{workout.exerciseGroup}</Card.Title>
+                <Card.Text>Exercise: {workout.exercise}</Card.Text>
+                <Card.Text>Attempts: {workout.attempts}</Card.Text>
+                <Card.Text>{workout.angle}</Card.Text>
                 <Link to={`/workouts/${workout._id}`}>
                   <Button variant='primary' className='mr-2'>Read More</Button>
                 </Link>

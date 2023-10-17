@@ -5,10 +5,12 @@ import { Card, Container } from 'react-bootstrap';
 
 const WorkoutPage = () => {
   const [workout, setWorkout] = useState({
-    title: "", //! need to change to stuff for tracking workouts
-    author: "",
-    image: "",
-    content: ""
+    exercise: "",
+    attempts: "",
+    grade: "",
+    angle: "",
+    send: "",
+    createdAt: ""
   });
 
   const {id} = useParams() // 
@@ -26,12 +28,12 @@ const WorkoutPage = () => {
     <Container className='mt-4'>
       <Card>
         <div style={{maxHeight: '500px', overflow:'hidden'}}>
-          <Card.Img className='img-fluid' variant='top' src={workout.image} alt={workout.title} />
+          <Card.Img className='img-fluid' variant='top' src={workout.send} alt={workout.exercise} />
         </div>
         <Card.Body>
-          <Card.Title>{workout.title}</Card.Title>
-          <Card.Subtitle className='mb-2 text-muted'>By: {workout.author}</Card.Subtitle>
-          <Card.Text>{workout.content}</Card.Text>
+          <Card.Title>Exercise: {workout.exercise}</Card.Title>
+          <Card.Subtitle className='mb-2 text-muted'>Attempts: {workout.attempts}</Card.Subtitle>
+          <Card.Text>Grade: {workout.grade}</Card.Text>
         </Card.Body>
       </Card>
     </Container>

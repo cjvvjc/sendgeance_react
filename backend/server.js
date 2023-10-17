@@ -13,10 +13,34 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(error => console.log(error.message))
 
 const workoutSchema = new mongoose.Schema({
-  title: {type: String, required: true},
-  author: { type: String, required: true },
-  image: { type: String, required: true },
-  content: { type: String, required: true }
+  exerciseGroup: {
+    type: String,
+    required: false
+  },
+  exercise: {
+    type: String,
+    required: false
+  },
+  attempts: {
+    type: String,
+    required: false
+  },
+  grade: {
+    type: String,
+    required: false
+  },
+  angle: {
+    type: String,
+    required: false
+  },
+  send: {
+    type: String,
+    required: false
+  },
+  createdAt: {
+    type: Date,
+    default: new Date()
+  }
 });
 
 const Workout = mongoose.model('Workout', workoutSchema);
@@ -71,8 +95,9 @@ app.put(`/workouts/:id`, async (req, res) => {
 app.delete(`/workouts/:id`, async (req, res) => {
   try {
     await Workout.findByIdAndRemove(req.params.id)
-    res.status(200).send('Workout deleted')
-    res.redirect('/')
+    const updatedWorkouts = await Workout.find();
+    res.send(updatedWorkouts);
+    // res.redirect('/')
   } catch (error) {
     res.status(500).send({ error: 'Error deleting the workout' });
   }
