@@ -17,6 +17,9 @@ const NavBar = () => {
           <LinkContainer to='/workouts/new'>
             <Nav.Link>Create Workout</Nav.Link>
           </LinkContainer>
+          <LinkContainer to='/workout/current'>
+            <Nav.Link>Current Workout</Nav.Link>
+          </LinkContainer>
         </Nav>
       </Navbar.Collapse>
     </Navbar>

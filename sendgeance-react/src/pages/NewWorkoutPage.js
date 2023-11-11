@@ -13,8 +13,7 @@ const NewWorkoutPage = () => {
     attempts: "",
     grade: "",
     angle: "",
-    send: "",
-    createdAt: ""
+    send: ""
   });
 
   const [selectedExerciseType, setSelectedExerciseType] = useState("Select an Exercise");
@@ -33,7 +32,6 @@ const NewWorkoutPage = () => {
   const navigate = useNavigate();
   
   const handleChange = e => {
-    console.log(workout)
     setWorkout({...workout, [e.target.name]: e.target.value})
   };
 
@@ -68,7 +66,12 @@ const NewWorkoutPage = () => {
   // }
 ];
 
-  const exerciseSelector = exercises.map(exercise => <option value={exercise.type}>{exercise.type}</option>);
+  // const exerciseSelector = exercises.map(exercise => <option value={exercise.type}>{exercise.type}</option>);
+  const exerciseSelector = exercises.map((exerciseGroup, index) => (
+    <option key={index} value={exerciseGroup.type}>
+      {exerciseGroup.type}
+    </option>
+  ));
 
   return(
     <Container className='mt-4'>
@@ -94,25 +97,6 @@ const NewWorkoutPage = () => {
               }
             </Form.Select>
           </Form.Group>
-            
-
-            {/* <Form.Select name="exercise" onChange={handleChange}>
-              <option value="">Exercise</option>
-              <option value="Contrast Warmup">Contrast Warmup</option>
-              <option value="One Touch">One Touch</option>
-              <option value="Hovers - Before">Hovers - Before</option>
-              <option value="Hovers - After">Hovers - After</option>
-              <option value="Rooting Feet">Rooting Feet</option>
-              <option value="Rooting Hands">Rooting Hands</option>
-              <option value="Rooting Both">Rooting Both</option>
-              <option value="Perfect Repeat">Perfect Repeat</option>
-              <option value="Match Hand/Foot">Match Hand/Foot</option>
-              <option value="One Leg">One Leg</option>
-              <option value="Deadpoint Practice">Deadpoint Practice</option>
-              <option value="Matching Techniques">Matching Techniques</option>
-              <option value="Free Climb">Free Climb</option>
-            </Form.Select> */}
-          {/* </Form.Group> */}
 
           <Form.Group>
             <Form.Select name="attempts" onChange={handleChange}>

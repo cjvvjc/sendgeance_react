@@ -39,7 +39,7 @@ const workoutSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: new Date()
+    default: Date.now
   }
 });
 
@@ -47,6 +47,16 @@ const Workout = mongoose.model('Workout', workoutSchema);
 
 //get all workouts
 app.get('/workouts', async (req, res) => {
+  try {
+    const workouts = await Workout.find();
+    res.send(workouts);
+  } catch (error) {
+    res.status(500).send({ error: 'Error fetching workouts' });
+  }
+});
+
+app.get('/workout/current', async (req, res) => {
+  console.log("workouts")
   try {
     const workouts = await Workout.find();
     res.send(workouts);
@@ -104,3 +114,5 @@ app.delete(`/workouts/:id`, async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server started on port 5000'))
+
+module.exports = Workout;

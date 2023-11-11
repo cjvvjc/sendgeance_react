@@ -34,6 +34,7 @@ const HomePage = () => {
               <Card.Body>
                 <Card.Title>{workout.exerciseGroup}</Card.Title>
                 <Card.Text>Exercise: {workout.exercise}</Card.Text>
+                <Card.Text>Grade: {workout.grade}</Card.Text>
                 <Card.Text>Attempts: {workout.attempts}</Card.Text>
                 <Card.Text>{workout.angle}</Card.Text>
                 <Link to={`/workouts/${workout._id}`}>

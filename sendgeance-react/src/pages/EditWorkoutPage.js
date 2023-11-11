@@ -10,23 +10,23 @@ const EditWorkoutPage = () => {
 
   //initialize state variable. create elements to store all info typed into form
   const [workout, editWorkout] = useState({
+    exerciseGroup: "",
     exercise: "",
     attempts: "",
     grade: "",
     angle: "",
-    send: "",
-    createdAt: ""
+    send: ""
   });
 
   // const { exercise, attempts, grade, angle, send, createdAt } = workout;
 
   const [tempWorkout, setTempWorkout] = useState({
+    exerciseGroup: "",
     exercise: "",
     attempts: "",
     grade: "",
     angle: "",
-    send: "",
-    createdAt: ""
+    send: ""
   });
 
   const [changed, setChanged] = useState(false);
