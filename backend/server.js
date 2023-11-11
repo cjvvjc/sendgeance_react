@@ -55,17 +55,25 @@ app.get('/workouts', async (req, res) => {
   }
 });
 
+//get today's workout
 app.get('/workout/current', async (req, res) => {
-  console.log("workouts")
   try {
-    const workouts = await Workout.find();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set the time to the beginning of the day
+
+    const workouts = await Workout.find({
+      createdAt: {
+        $gte: today, // Greater than or equal to the beginning of the day
+        $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // Less than the beginning of the next day
+      }
+    });
     res.send(workouts);
   } catch (error) {
     res.status(500).send({ error: 'Error fetching workouts' });
   }
 });
 
-//get one workout
+//get  workout
 app.get('/workouts/:id', async (req, res) => {
   try {
     const workout = await Workout.findById(req.params.id);
