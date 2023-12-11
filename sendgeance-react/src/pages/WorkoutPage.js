@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { Card, Container } from 'react-bootstrap';
+import { Card, Container, Image } from 'react-bootstrap';
+import logo from "../images/logo-black.jpeg"
 
 const WorkoutPage = () => {
   const [workout, setWorkout] = useState({
@@ -24,8 +25,13 @@ const WorkoutPage = () => {
     fetchWorkout();
   },[id]);
 
+  const formattedCreatedAt = new Date(workout.createdAt).toLocaleString('en-US', {
+    timeZone: 'America/Denver', // Mountain Time Zone
+  });
+
   return(
-    <Container className='mt-4'>
+    <Container className='mt-4' style={{ marginBottom: '100px' }}>
+      <Image className="img-fluid" src={logo} alt="" />
       <Card>
         <div style={{maxHeight: '500px', overflow:'hidden'}}>
           <Card.Img className='img-fluid' variant='top' src={workout.send} alt={workout.exercise} />
@@ -34,6 +40,7 @@ const WorkoutPage = () => {
           <Card.Title>Exercise: {workout.exercise}</Card.Title>
           <Card.Subtitle className='mb-2 text-muted'>Attempts: {workout.attempts}</Card.Subtitle>
           <Card.Text>Grade: {workout.grade}</Card.Text>
+          <Card.Text>Created At: {formattedCreatedAt}</Card.Text>
         </Card.Body>
       </Card>
     </Container>

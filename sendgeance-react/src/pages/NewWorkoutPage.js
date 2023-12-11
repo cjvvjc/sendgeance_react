@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Form, Button, Container } from 'react-bootstrap';
+// import { useNavigate } from 'react-router-dom';
+import { Form, Button, Container, Row, Col, Image } from 'react-bootstrap';
+import logo from "../images/logo-black.jpeg"
+import TryHardTracker from '../components/TryHardTracker';
 
-
-const NewWorkoutPage = () => {
+const NewWorkoutPage = ({ updateDates }) => {
   
   //initialize state variable. create elements to store all info typed into form
   const [workout, setWorkout] = useState({
@@ -17,6 +18,10 @@ const NewWorkoutPage = () => {
   });
 
   const [selectedExerciseType, setSelectedExerciseType] = useState("Select an Exercise");
+  const [lastWorkoutDetails, setLastWorkoutDetails] = useState(null);
+  // const [lastSubmissionTime, setLastSubmissionTime] = useState(null);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const handleExerciseChange = (e) => {
     const selectedValue = e.target.value;
@@ -27,19 +32,81 @@ const NewWorkoutPage = () => {
       exerciseGroup: selectedValue,
     }));
   };
-  
-  // makes call to router to route to pages
-  const navigate = useNavigate();
+
+  const handleSendToggle = () => {
+    setWorkout((prevWorkout) => ({
+      ...prevWorkout,
+      send: !prevWorkout.send, // Toggle the value
+    }));
+  };
+
+  const fetchLastWorkout = useCallback(async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/workouts/last');
+      const lastWorkout = res.data;
+
+      if (lastWorkout) {
+        setLastWorkoutDetails({
+          exerciseGroup: lastWorkout.exerciseGroup,
+          exercise: lastWorkout.exercise,
+          grade: lastWorkout.grade,
+          attempts: lastWorkout.attempts,
+          angle: lastWorkout.angle,
+          createdAt: lastWorkout.createdAt
+          // Add more details as needed
+         });
+
+        const currentDate = new Date();
+        setStartDate(currentDate);
+        setEndDate(currentDate);
+
+        updateDates(currentDate, currentDate);
+
+        //  const storedSubmissionTime = localStorage.getItem('lastSubmissionTime');
+        //  if (!storedSubmissionTime) {
+        //     const currentSubmissionTime = new Date();
+        //     var options = { timeZone: 'America/Denver', weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+        //     setLastSubmissionTime(currentSubmissionTime.toLocaleString('en-US', options));
+
+        //     localStorage.setItem('lastSubmissionTime', currentSubmissionTime.getTime());
+
+            
+
+        //  } else {
+        //    setLastSubmissionTime(new Date(storedSubmissionTime));
+        //  }
+      }
+    } catch (error) {
+      console.error("Error fetching last workout:", error);
+    }
+      }, [setLastWorkoutDetails, setStartDate, setEndDate, updateDates]);
   
   const handleChange = e => {
     setWorkout({...workout, [e.target.name]: e.target.value})
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     await axios.post('http://localhost:5000/workouts', workout);
-    navigate('/');
+
+    // setLastSubmissionTime(new Date());
+
+    const currentDate = new Date();
+    setStartDate(currentDate);
+    setEndDate(currentDate);
+
+    fetchLastWorkout();
   };
+
+  useEffect(() => {
+    // const storedSubmissionTime = localStorage.getItem('lastSubmissionTime');
+    // if (storedSubmissionTime) {
+    //   setLastSubmissionTime(new Date(storedSubmissionTime));
+    // }
+    // console.log(storedSubmissionTime)
+
+    fetchLastWorkout();
+  }, [fetchLastWorkout]);
 
   const exercises = [{
     type: "Warmup Exercises",
@@ -47,18 +114,18 @@ const NewWorkoutPage = () => {
   }, {
     type: "Bouldering",
     choices: ["Limit", "Strength"],
-  }, {
-    type: "Routes",
-    choices: ["Redpoint", "Free Climb"],
-  }, {
-    type: "Hangboard",
-    choices: ["Max Hangs", "Repeaters"],
-  }, {
-    type: "Power Endurance",
-    choices: ["On The Minute", "4x4", "Linked Boulders"],
-  }, {
-    type: "Endurance",
-    choices: ["Doubles", "Volume"],
+  // }, {
+  //   type: "Routes",
+  //   choices: ["Redpoint", "Free Climb"],
+  // }, {
+  //   type: "Hangboard",
+  //   choices: ["Max Hangs", "Repeaters"],
+  // }, {
+  //   type: "Power Endurance",
+  //   choices: ["On The Minute", "4x4", "Linked Boulders"],
+  // }, {
+  //   type: "Endurance",
+  //   choices: ["Doubles", "Volume"],
   }
   // , {
   //   type: "Weight Room",
@@ -66,7 +133,6 @@ const NewWorkoutPage = () => {
   // }
 ];
 
-  // const exerciseSelector = exercises.map(exercise => <option value={exercise.type}>{exercise.type}</option>);
   const exerciseSelector = exercises.map((exerciseGroup, index) => (
     <option key={index} value={exerciseGroup.type}>
       {exerciseGroup.type}
@@ -74,7 +140,8 @@ const NewWorkoutPage = () => {
   ));
 
   return(
-    <Container className='mt-4'>
+    <Container className='mt-4' style={{ marginBottom: '100px' }}>
+      <Image className="img-fluid" src={logo} alt="" />
         <Form onSubmit={handleSubmit}>
           <Form.Group>
             <Form.Select name="exerciseGroup" onChange={handleExerciseChange}>
@@ -102,7 +169,6 @@ const NewWorkoutPage = () => {
             <Form.Select name="attempts" onChange={handleChange}>
               <option value="">Attempts</option>
               <option value="Flash">Flash</option>
-              <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
@@ -201,14 +267,60 @@ const NewWorkoutPage = () => {
               <option value={"85\u00b0"}>{'85\u00b0'}</option>
               <option value={"90\u00b0"}>{'90\u00b0'}</option>
             </Form.Select>
-            <Form.Label>Send</Form.Label>
-            <Form.Control type="text" name="send" placeholder="Send?" onChange={handleChange} />
+            
+            <Button
+              variant={workout.send ? "success" : "outline-success"} // Use primary color if selected, outline otherwise
+              onClick={handleSendToggle}
+            >
+              {workout.send ? "Sent!" : "Send?"}
+        </Button>
           </Form.Group>
 
           <Button variant="primary" type="submit">
             Create
           </Button>
         </Form>
+        {lastWorkoutDetails && (
+  <Container className='mt-4'>
+    <Row>
+      <Col>
+        <p className='mb-1'>Last Submission:</p>
+        {lastWorkoutDetails.createdAt && (
+          <p className='mb-1'>
+            {`${new Date(lastWorkoutDetails.createdAt).toLocaleString('en-US', {
+              timeZone: 'America/Denver',
+              month: 'numeric',
+              day: 'numeric',
+              year: '2-digit',
+            })} ${new Date(lastWorkoutDetails.createdAt).toLocaleTimeString('en-US', {
+              timeZone: 'America/Denver',
+              hour: 'numeric',
+              minute: 'numeric',
+              second: 'numeric',
+            })}`}
+          </p>
+        )}
+        {/* <p className='mb-1'>{lastSubmissionTime && lastSubmissionTime.toLocaleString('en-US', { timeZone: 'America/Denver' })}</p> */}
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <p className='mb-1'>{lastWorkoutDetails.exerciseGroup}</p>
+        <p className='mb-1'>{lastWorkoutDetails.exercise}</p>
+        <p className='mb-1'>{lastWorkoutDetails.grade}</p>
+        {lastWorkoutDetails.attempts === "Flash" && (
+          <p className='mb-1'>{lastWorkoutDetails.attempts}</p>
+        )}
+        {typeof (Number(lastWorkoutDetails.attempts)) === "number" && (
+          <p className='mb-1'>{lastWorkoutDetails.attempts} attempts</p>
+        )}
+        <p className='mb-1'>{lastWorkoutDetails.angle}</p>
+        {/* Add more details as needed */}
+      </Col>
+    </Row>
+  </Container>
+)}
+  <TryHardTracker startDate={startDate} endDate={endDate} />  
       </Container>
   );
 };

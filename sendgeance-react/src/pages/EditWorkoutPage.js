@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Button, Container } from 'react-bootstrap';
+import { Form, Button, Container, Image } from 'react-bootstrap';
+import logo from "../images/logo-black.jpeg"
 
 const EditWorkoutPage = () => {
   // makes call to router to route to pages
@@ -63,7 +64,8 @@ const EditWorkoutPage = () => {
   };
 
   return(
-    <Container className='mt-4'>
+    <Container className='mt-4' style={{ marginBottom: '100px' }}>
+      <Image className="img-fluid" src={logo} alt=""/>
       <Form>
       <Form.Group>
           <Form.Select name= "exercise" onChange={handleChange} value={tempWorkout.exercise}>
