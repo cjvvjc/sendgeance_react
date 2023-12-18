@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegistrationPage';
@@ -15,19 +15,17 @@ function App() {
   const [dates, setDates] = useState({ startDate: null, endDate: null });
   const [username, setUsername] = useState("");
 
-  console.log("app username", username);
-
-
   const updateDates = (startDate, endDate) => {
     setDates({ startDate, endDate });
   };
 
-  // Define an array of paths where TryHardTracker should be displayed
-  const trackerPaths = ['/workouts/new', '/workouts/:id', '/workout/edit/:id', '/workout/current', '/workouts/all'];
-
-  // Check if the current path is in the trackerPaths array
-  const currentPath = window.location.pathname;
-  const shouldDisplayTracker = trackerPaths.some((path) => currentPath.startsWith(path));
+  function TryHardTrackerWrapper() {
+    const location = useLocation();
+    const trackerPaths = ['/workouts/new', '/workouts/:id', '/workout/edit/:id', '/workout/current', '/workouts/all'];
+    const shouldDisplayTracker = trackerPaths.some((path) => location.pathname.startsWith(path));
+  
+    return shouldDisplayTracker ? <TryHardTracker startDate={dates.startDate} endDate={dates.endDate} /> : null;
+  }
   
   return (
     <Router>
@@ -42,7 +40,7 @@ function App() {
         <Route path="/workout/current" element={<CurrentWorkoutPage updateDates={updateDates} />} />
         <Route path="/workouts/all" element={<AllWorkoutsPage />} />
       </Routes>
-      {shouldDisplayTracker && <TryHardTracker startDate={dates.startDate} endDate={dates.endDate} />}
+      <TryHardTrackerWrapper />
     </Router>
   );
 };
