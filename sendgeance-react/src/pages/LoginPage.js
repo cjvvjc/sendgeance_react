@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-
-const LoginPage = ({ onLogin }) => {
+const LoginPage = ({ setUsername}) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const navigate = Navigate();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,47 +21,76 @@ const LoginPage = ({ onLogin }) => {
       [name]: value,
     }));
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Add form validation logic here if needed
-
-    // Call the onLogin callback with the form data
-    onLogin(formData);
+  const handleTogglePassword = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
-  const handleRegisterClick = () => {
-    // Redirect to the registration page
-    // navigate('/register');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Send a POST request to the server's login endpoint
+      const response = await axios.post('http://localhost:5000/login', formData);
+      console.log("data", response.data);
+
+      // Check the server's response
+      if (response.data.success) {
+        setUsername(response.data.username);
+        navigate('/'); // Redirect to home page on successful login
+      } else {
+        // Handle failed login attempt (e.g., show error message)
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      // Handle errors (e.g., show error message)
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Username:
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-        />
-      </label>
-      <br />
-      <label>
-        Password:
-        <input
-          type="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-        />
-      </label>
-      <br />
-      <button type="submit">Login</button>
-      <p>
-        Don't have an account? <Link to="/register">Register</Link>
-      </p>
-    </form>
+    <Container>
+      <Row>
+        <Col xs={12} md={6}>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="formUsername" className="mb-2">
+              <Form.Label className="mb-0">Username:</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formPassword" className="mb-2">
+              <Form.Label className="mb-0">Password:</Form.Label>
+              <div className="d-flex align-items-center">
+                <div className="password-input flex-grow-1">
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                </div>
+                <span className="ml-2" onClick={handleTogglePassword}>
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+            </Form.Group>
+
+            <Button variant="primary" type="submit">
+              Login
+            </Button>
+
+            <p>
+              Don't have an account? <Link to="/register">Register</Link>
+            </p>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
+    
   );
 };
 

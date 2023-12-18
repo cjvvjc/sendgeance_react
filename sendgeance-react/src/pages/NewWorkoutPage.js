@@ -108,6 +108,14 @@ const NewWorkoutPage = ({ updateDates }) => {
     fetchLastWorkout();
   }, [fetchLastWorkout]);
 
+  const isSameDay = (d1, d2) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  };
+
+  const currentDate = new Date();
+
   const exercises = [{
     type: "Warmup Exercises",
     choices: ["Contrast Warmup", "One Touch", "Hovers - Before", "Hovers - After", "Rooting Feet", "Rooting Hands", "Rooting Both", "Perfect Repeat", "Match Hand/Foot", "One Leg", "Deadpoint Practice", "Matching Techniques", "Free Climb"],
@@ -280,7 +288,7 @@ const NewWorkoutPage = ({ updateDates }) => {
             Create
           </Button>
         </Form>
-        {lastWorkoutDetails && (
+        {lastWorkoutDetails && isSameDay(new Date(lastWorkoutDetails.createdAt), currentDate) && (
   <Container className='mt-4'>
     <Row>
       <Col>

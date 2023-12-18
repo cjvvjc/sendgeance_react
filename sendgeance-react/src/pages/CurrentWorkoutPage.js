@@ -230,16 +230,30 @@ const CurrentWorkoutPage = ({ updateDates }) => {
 
       // Optionally, you can reset or perform any cleanup after ending the session
       // Reset the state, clear local storage, etc.
+
+      // Reset RPE to 0
+      setRateOfPerceivedExertion(0);
+      localStorage.setItem('rateOfPerceivedExertion', '0');
   
       localStorage.clear();
 
       console.log('Session ended and data submitted successfully!');
 
-      navigate('/home');
+      navigate('/');
     } catch (error) {
       console.error('Error ending session and submitting data:', error);
     }
   };
+
+  useEffect(() => {
+    const today = moment().startOf('day');
+    const selectedMoment = moment(selectedDate).startOf('day');
+  
+    if (!selectedMoment.isSame(today)) {
+      setRateOfPerceivedExertion(0);
+      localStorage.setItem('rateOfPerceivedExertion', '0');
+    }
+  }, [selectedDate]);
 
   useEffect(() => {
     const sessionTime = totalSessionTimeInMinutes();
@@ -312,6 +326,9 @@ const CurrentWorkoutPage = ({ updateDates }) => {
               <p style={{ marginLeft: "2em", marginBottom: "0" }}>
                 Bouldering Session Time: {boulderingSessionTime} minutes
               </p>
+              <p style={{ marginLeft: "2em", marginBottom: "0" }}>
+                Total Boulder Problems: {totalBoulderingProblems}
+              </p>
             </div>
           )}
         </Col>
@@ -345,9 +362,6 @@ const CurrentWorkoutPage = ({ updateDates }) => {
                   <Button variant='danger' onClick={() => handleDelete(workout._id)}>Delete</Button>
                 </Card.Body>
               </Card>
-              <Button variant="primary" onClick={handleEndSession}>
-                End Session and Submit Data
-              </Button>
             </Col>
         ))
       ) : (
@@ -356,6 +370,9 @@ const CurrentWorkoutPage = ({ updateDates }) => {
         </Col>
       )}
       </Row>
+      <Button variant="primary" onClick={handleEndSession}>
+        End Session and Submit Data
+      </Button>
       <TryHardTracker startDate={startDate} endDate={endDate} />
     </Container>
   );

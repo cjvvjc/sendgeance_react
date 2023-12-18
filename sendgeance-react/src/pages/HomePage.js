@@ -4,7 +4,7 @@ import mainLogo from "../images/sendgeance-high-resolution-logo.jpeg"
 import { Button, Container, Row, Col, Image} from 'react-bootstrap'
 import "../styles/styles.css"
 
-const HomePage = () => {
+const HomePage = ({ username }) => {
   const location = useLocation();
 
   const isHomePage = location.pathname === "/";
@@ -21,7 +21,7 @@ const HomePage = () => {
       </Row>
       <Row>
         <Col style={{fontSize:"30px"}}>
-          What would you like to do today?
+          Hello {username}! What would you like to do today?
         </Col>
       </Row>
       <Row>
