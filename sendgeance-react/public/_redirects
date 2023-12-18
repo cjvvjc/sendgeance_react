@@ -1,1 +1,5 @@
+# Redirect default route to /login
+/    /login    302
+
+# Handle SPA routing
 /*    /index.html   200
