@@ -5,7 +5,7 @@ import { Form, Button, Container, Row, Col, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
 import TryHardTracker from '../components/TryHardTracker';
 
-const NewWorkoutPage = ({ updateDates }) => {
+const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   
   //initialize state variable. create elements to store all info typed into form
   const [workout, setWorkout] = useState({
@@ -106,7 +106,7 @@ const NewWorkoutPage = ({ updateDates }) => {
     // console.log(storedSubmissionTime)
 
     fetchLastWorkout();
-  }, [fetchLastWorkout]);
+  }, []);
 
   const isSameDay = (d1, d2) => {
     return d1.getFullYear() === d2.getFullYear() &&

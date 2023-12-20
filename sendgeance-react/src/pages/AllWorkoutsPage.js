@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button, Container, Row, Col, Image, ListGroup } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
 
-const AllWorkoutsPage = () => {
+const AllWorkoutsPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   const [workoutsByDay, setWorkoutsByDay] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
 

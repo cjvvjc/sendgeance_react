@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 
-const TryHardTracker = ({ startDate, endDate }) => {
-  const [patheticCount, setPatheticCount] = useState(0);
-  const [mediumCount, setMediumCount] = useState(0);
-  const [hardCount, setHardCount] = useState(0);
+const TryHardTracker = ({ startDate, endDate, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
 
   const handleIncrement = async (difficulty) => {
     // Update the count and send to the server
@@ -59,6 +56,9 @@ const TryHardTracker = ({ startDate, endDate }) => {
       console.error('Error updating difficulty count:', error);
     }
   };
+
+  console.log("TryHardTracker Props:", patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount);
+
 
   return (
     <React.Fragment>

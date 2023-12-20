@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Card, Container, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
 
-const WorkoutPage = () => {
+const WorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount} ) => {
   const [workout, setWorkout] = useState({
     exercise: "",
     attempts: "",

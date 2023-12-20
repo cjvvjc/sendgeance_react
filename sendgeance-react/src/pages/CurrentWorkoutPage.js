@@ -11,7 +11,7 @@ import TryHardTracker from "../components/TryHardTracker";
 //stop when get to here
 const moment = require("moment");
 
-const CurrentWorkoutPage = ({ updateDates }) => {
+const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentWorkout, setCurrentWorkout] = useState([]);
   const [sessionTimes, setSessionTimes] = useState({ startTime: null, endTime: null });
@@ -88,6 +88,18 @@ const CurrentWorkoutPage = ({ updateDates }) => {
       calculateSentCardsCount();
     }
   }, [currentWorkout]);
+
+  useEffect(() => {
+    const fetchInitialRpe = async () => {
+      // Replace with your actual API endpoint to fetch RPE
+      const res = await axios.get('http://localhost:5000/session/latest-rpe');
+      if (res.data) {
+        setRateOfPerceivedExertion(res.data.rateOfPerceivedExertion);
+      }
+    };
+  
+    fetchInitialRpe();
+  }, []);  
 
   useEffect(() => {
     const fetchWorkout = async () => {
@@ -189,7 +201,23 @@ const CurrentWorkoutPage = ({ updateDates }) => {
       }
     };
     fetchWorkout()
-  },[selectedDate, updateDates, currentWorkout, totalSessionTimeInMinutes, rateOfPerceivedExertion, vPointSum, sessionDensity, vPointAverage, boulderingSessionDensity, totalBoulderingSessionTimeInMinutes]);
+  },[selectedDate, totalSessionTimeInMinutes, rateOfPerceivedExertion, vPointSum, sessionDensity, vPointAverage, boulderingSessionDensity, totalBoulderingSessionTimeInMinutes]);
+
+  const handleRpeSelect = async (value) => {
+    setRateOfPerceivedExertion(value);
+    // Replace with your actual API endpoint to update RPE
+    await axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: value });
+  };
+  
+  useEffect(() => {
+    const today = moment().startOf('day');
+    const selectedMoment = moment(selectedDate).startOf('day');
+  
+    if (!selectedMoment.isSame(today)) {
+      setRateOfPerceivedExertion(0);
+      axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: 0 });
+    }
+  }, [selectedDate]);
 
   const handleDelete = async (id) => {
     try {
@@ -203,10 +231,6 @@ const CurrentWorkoutPage = ({ updateDates }) => {
 
   const toggleSessionTimes = () => {
     setShowSessionTimes(!showSessionTimes);
-  };
-
-  const handleRpeSelect = (value) => {
-    setRateOfPerceivedExertion(value);
   };
 
   const handleEndSession = async () => {
@@ -233,9 +257,7 @@ const CurrentWorkoutPage = ({ updateDates }) => {
 
       // Reset RPE to 0
       setRateOfPerceivedExertion(0);
-      localStorage.setItem('rateOfPerceivedExertion', '0');
-  
-      localStorage.clear();
+      await axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: 0 });
 
       console.log('Session ended and data submitted successfully!');
 
@@ -373,7 +395,16 @@ const CurrentWorkoutPage = ({ updateDates }) => {
       <Button variant="primary" onClick={handleEndSession}>
         End Session and Submit Data
       </Button>
-      <TryHardTracker startDate={startDate} endDate={endDate} />
+      <TryHardTracker
+        startDate={startDate} 
+        endDate={endDate}
+        patheticCount={patheticCount} 
+        setPatheticCount={setPatheticCount}
+        mediumCount={mediumCount} 
+        setMediumCount={setMediumCount}
+        hardCount={hardCount} 
+        setHardCount={setHardCount}
+      />
     </Container>
   );
 };

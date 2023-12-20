@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Button, Container, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
 
-const EditWorkoutPage = () => {
+const EditWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   // makes call to router to route to pages
   const navigate = useNavigate();
   const {id} = useParams();

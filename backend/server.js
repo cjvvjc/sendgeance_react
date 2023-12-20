@@ -11,7 +11,7 @@ const cors = require('cors');
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'path_to_your_react_build_folder')));
+// app.use(express.static(path.join(__dirname, 'path_to_your_react_build_folder')));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to DB'))
@@ -251,6 +251,57 @@ app.post('/session/update', async (req, res) => {
   } catch (error) {
     console.error('Error updating or creating session entry:', error);
     res.status(500).send({ error: 'Error updating or creating session entry' });
+  }
+});
+
+// Get the latest session counts
+app.get('/session/latest', async (req, res) => {
+  try {
+    const latestSession = await Session.findOne().sort({ createdAt: -1 });
+    if (!latestSession) {
+      return res.status(404).send({ error: 'No session data found' });
+    }
+    res.json({
+      patheticCount: latestSession.patheticCount,
+      mediumCount: latestSession.mediumCount,
+      hardCount: latestSession.hardCount
+    });
+  } catch (error) {
+    console.error('Error fetching latest session data:', error);
+    res.status(500).send({ error: 'Error fetching latest session data' });
+  }
+});
+
+// Endpoint to get the latest RPE value
+app.get('/session/latest-rpe', async (req, res) => {
+  try {
+    const latestSession = await Session.findOne().sort({ createdAt: -1 });
+    if (!latestSession) {
+      return res.status(404).send({ error: 'No session data found' });
+    }
+    res.json({ rateOfPerceivedExertion: latestSession.rateOfPerceivedExertion });
+  } catch (error) {
+    console.error('Error fetching latest RPE value:', error);
+    res.status(500).send({ error: 'Error fetching latest RPE value' });
+  }
+});
+
+// Endpoint to update the RPE value
+app.post('/session/update-rpe', async (req, res) => {
+  try {
+    const { rateOfPerceivedExertion, startDate, endDate } = req.body;
+
+    // Update or create a new session with the new RPE value
+    const updatedSession = await Session.findOneAndUpdate(
+      { startDate, endDate },
+      { rateOfPerceivedExertion },
+      { upsert: true, new: true }
+    );
+
+    res.send(updatedSession);
+  } catch (error) {
+    console.error('Error updating RPE value:', error);
+    res.status(500).send({ error: 'Error updating RPE value' });
   }
 });
 
