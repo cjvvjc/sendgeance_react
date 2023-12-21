@@ -5,7 +5,6 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import axios from 'axios';
-import { AuthContext } from '../AuthContext';
 
 const LoginPage = ({ setUsername}) => {
   const { isAuthenticated, login } = useContext(AuthContext);
