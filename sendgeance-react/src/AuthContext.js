@@ -4,6 +4,8 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
 
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
   const login = (userData) => {
     setIsAuthenticated(true);
     setUser(userData);
@@ -15,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ apiUrl, isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

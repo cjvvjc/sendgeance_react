@@ -1,17 +1,20 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Button, Container, Row, Col, Image, ListGroup } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
+import { AuthContext } from '../AuthContext';
 
 const AllWorkoutsPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   const [workoutsByDay, setWorkoutsByDay] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
 
+  const { apiUrl } = useContext(AuthContext);
+
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/workouts/all`);
+        const res = await axios.get(`${apiUrl}/workouts/all`);
         const groupedWorkouts = groupWorkoutsByDay(res.data)
         setWorkoutsByDay(groupedWorkouts);
       } catch (error) {
@@ -36,7 +39,7 @@ const AllWorkoutsPage = ({ updateDates, patheticCount, setPatheticCount, mediumC
   
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/workouts/${id}`);
+      await axios.delete(`${apiUrl}/workouts/${id}`);
       
       // Update state after successful deletion
       setWorkoutsByDay(prevWorkoutsByDay => {

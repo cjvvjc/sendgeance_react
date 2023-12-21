@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
 import TryHardTracker from '../components/TryHardTracker';
+import { AuthContext } from '../AuthContext';
 
 const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   
@@ -22,6 +23,8 @@ const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCo
   // const [lastSubmissionTime, setLastSubmissionTime] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+
+  const { apiUrl } = useContext(AuthContext);
 
   const handleExerciseChange = (e) => {
     const selectedValue = e.target.value;
@@ -42,7 +45,7 @@ const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCo
 
   const fetchLastWorkout = useCallback(async () => {
     try {
-      const res = await axios.get('http://localhost:5000/workouts/last');
+      const res = await axios.get(`${apiUrl}/workouts/last`);
       const lastWorkout = res.data;
 
       if (lastWorkout) {
@@ -87,7 +90,7 @@ const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post('http://localhost:5000/workouts', workout);
+    await axios.post(`${apiUrl}/workouts`, workout);
 
     // setLastSubmissionTime(new Date());
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AuthProvider } from './AuthContext';
@@ -13,6 +13,7 @@ import CurrentWorkoutPage from './pages/CurrentWorkoutPage';
 import AllWorkoutsPage from './pages/AllWorkoutsPage';
 import TryHardTracker from './components/TryHardTracker';
 import ProtectedRoute from './ProtectedRoute';
+import { AuthContext } from './AuthContext';
 
 axios.defaults.withCredentials = true;
 
@@ -23,6 +24,8 @@ function App() {
   const [mediumCount, setMediumCount] = useState(0);
   const [hardCount, setHardCount] = useState(0);
 
+  const { apiUrl } = useContext(AuthContext);
+
   const updateDates = (startDate, endDate) => {
     setDates({ startDate, endDate });
   };
@@ -30,7 +33,7 @@ function App() {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/session/latest');
+        const response = await axios.get(`${apiUrl}/session/latest`);
         if (response.status === 200) {
           const data = response.data;
           setPatheticCount(data.patheticCount || 0);

@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Button, Container, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
+import { AuthContext } from '../AuthContext';
 
 const EditWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
   // makes call to router to route to pages
   const navigate = useNavigate();
   const {id} = useParams();
+  const { apiUrl } = useContext(AuthContext);
 
   //initialize state variable. create elements to store all info typed into form
   const [workout, editWorkout] = useState({
@@ -34,7 +36,7 @@ const EditWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumC
 
   useEffect(() => {
     const fetchWorkout = async () => {
-      const res = await axios.get(`http://localhost:5000/workouts/${id}`);
+      const res = await axios.get(`${apiUrl}/workouts/${id}`);
       editWorkout(res.data);
       setTempWorkout(res.data);
     };
@@ -54,7 +56,7 @@ const EditWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumC
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/workouts/${id}`, tempWorkout)
+      await axios.put(`${apiUrl}/workouts/${id}`, tempWorkout)
       setChanged(false);
       navigate('/');
     } catch (error) {

@@ -12,7 +12,7 @@ const MongoStore = require('connect-mongo');
 const app = express();
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' ? 'https://lighthearted-lily-177389.netlify.app' : 'http://localhost:3000',
   credentials: true,
 };
 app.use(cors(corsOptions));

@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { AuthContext } from './AuthContext';
+
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
+  const { apiUrl } = useContext(AuthContext);
+
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/auth/check');
+        const response = await axios.get(`${apiUrl}/auth/check`);
         setIsAuthenticated(response.data.isAuthenticated);
       } catch (error) {
         console.error('Auth check failed:', error);

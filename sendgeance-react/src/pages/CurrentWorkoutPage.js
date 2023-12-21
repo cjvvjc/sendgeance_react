@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Button, Container, Row, Col, Form, Image, Dropdown} from 'react-bootstrap';
@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css"
 import logo from "../images/logo-black.jpeg"
 import TryHardTracker from "../components/TryHardTracker";
-
+import { AuthContext } from '../AuthContext';
 
 //stop when get to here
 const moment = require("moment");
@@ -36,6 +36,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
   });
 
   const navigate = useNavigate();
+  const { apiUrl } = useContext(AuthContext);
 
   // Calculate total session time in minutes
   const totalSessionTimeInMinutes = useCallback(() => {
@@ -92,7 +93,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
   useEffect(() => {
     const fetchInitialRpe = async () => {
       // Replace with your actual API endpoint to fetch RPE
-      const res = await axios.get('http://localhost:5000/session/latest-rpe');
+      const res = await axios.get(`${apiUrl}/session/latest-rpe`);
       if (res.data) {
         setRateOfPerceivedExertion(res.data.rateOfPerceivedExertion);
       }
@@ -114,7 +115,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
           endDate: endDate.toISOString(),
         };
 
-        const res = await axios.get(`http://localhost:5000/workout/current`, { params });
+        const res = await axios.get(`${apiUrl}/workout/current`, { params });
         const newCurrentWorkout = res.data
 
         if (JSON.stringify(currentWorkout) !== JSON.stringify(newCurrentWorkout)) {
@@ -192,7 +193,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
         updateDates(startDate, endDate)
 
         // Send a POST request to create or update the Session entry
-        await axios.post('http://localhost:5000/session/update', sessionData);
+        await axios.post(`${apiUrl}/session/update`, sessionData);
 
         localStorage.setItem('rateOfPerceivedExertion', rateOfPerceivedExertion.toString());
 
@@ -206,7 +207,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
   const handleRpeSelect = async (value) => {
     setRateOfPerceivedExertion(value);
     // Replace with your actual API endpoint to update RPE
-    await axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: value });
+    await axios.post(`${apiUrl}/session/update-rpe`, { rateOfPerceivedExertion: value });
   };
   
   useEffect(() => {
@@ -215,13 +216,13 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
   
     if (!selectedMoment.isSame(today)) {
       setRateOfPerceivedExertion(0);
-      axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: 0 });
+      axios.post(`${apiUrl}/session/update-rpe`, { rateOfPerceivedExertion: 0 });
     }
   }, [selectedDate]);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/workouts/${id}`);
+      await axios.delete(`${apiUrl}/workouts/${id}`);
       setCurrentWorkout(prevWorkouts => prevWorkouts.filter(workout => workout._id !== id));
 
     } catch (error) {
@@ -250,14 +251,14 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
       };
   
       // Submit data to the database
-      await axios.post('http://localhost:5000/session/update', sessionData);
+      await axios.post(`${apiUrl}/session/update`, sessionData);
 
       // Optionally, you can reset or perform any cleanup after ending the session
       // Reset the state, clear local storage, etc.
 
       // Reset RPE to 0
       setRateOfPerceivedExertion(0);
-      await axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: 0 });
+      await axios.post(`${apiUrl}/session/update-rpe`, { rateOfPerceivedExertion: 0 });
 
       console.log('Session ended and data submitted successfully!');
 

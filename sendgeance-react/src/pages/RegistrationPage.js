@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom'
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
+import { AuthContext } from '../AuthContext';
 
 const RegistrationPage = ({ onRegister }) => {
   const [formData, setFormData] = useState({
@@ -11,7 +12,9 @@ const RegistrationPage = ({ onRegister }) => {
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
+  const { apiUrl } = useContext(AuthContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,7 +35,7 @@ const RegistrationPage = ({ onRegister }) => {
       // Add form validation logic here if needed
   
       // Make an HTTP POST request to your server
-      const response = await axios.post('http://localhost:5000/register', formData);
+      const response = await axios.post(`${apiUrl}/register`, formData);
   
       if (response.data.success) {
         // Redirect to login page on successful registration

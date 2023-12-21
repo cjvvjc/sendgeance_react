@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import axios from 'axios';
+import { AuthContext } from '../AuthContext';
 
 const LoginPage = ({ setUsername}) => {
   const { isAuthenticated, login } = useContext(AuthContext);
@@ -15,6 +16,7 @@ const LoginPage = ({ setUsername}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+  const { apiUrl } = useContext(AuthContext);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -37,7 +39,7 @@ const LoginPage = ({ setUsername}) => {
     e.preventDefault();
     try {
       // Send a POST request to the server's login endpoint
-      const response = await axios.post('http://localhost:5000/login', formData);
+      const response = await axios.post(`${apiUrl}/login`, formData);
       console.log("data", response.data);
 
       // Check the server's response

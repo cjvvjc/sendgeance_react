@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {Navbar, Nav} from 'react-bootstrap';
 import {LinkContainer} from 'react-router-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AuthContext } from '../AuthContext';
 
 const NavBar = () => {
   const navigate = useNavigate();
+  const { apiUrl } = useContext(AuthContext);
+
 
   const handleLogout = async () => {
     console.log("Attempting to logout");
     try {
-      const response = await axios.post('http://localhost:5000/logout');
+      const response = await axios.post(`${apiUrl}/logout`);
       if (response.data.success) {
         // Redirect to home page or login page after successful logout
         navigate('/login');

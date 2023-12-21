@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { Card, Container, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
+import { AuthContext } from '../AuthContext';
 
 const WorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount} ) => {
   const [workout, setWorkout] = useState({
@@ -14,12 +15,13 @@ const WorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount
     createdAt: ""
   });
 
-  const {id} = useParams() // 
+  const {id} = useParams()
+  const { apiUrl } = useContext(AuthContext);
 
   // hook to perform an operation once and then perform it again if certain conditions are met
   useEffect(() => {
     const fetchWorkout = async () => {
-      const res = await axios.get(`http://localhost:5000/workouts/${id}`);
+      const res = await axios.get(`${apiUrl}/workouts/${id}`);
       setWorkout(res.data);
     };
     fetchWorkout();

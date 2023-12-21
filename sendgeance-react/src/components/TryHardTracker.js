@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Button, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
+import { AuthContext } from '../AuthContext';
 
 const TryHardTracker = ({ startDate, endDate, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
+
+  const { apiUrl } = useContext(AuthContext);
 
   const handleIncrement = async (difficulty) => {
     let newCount;
@@ -58,7 +61,7 @@ const TryHardTracker = ({ startDate, endDate, patheticCount, setPatheticCount, m
 
   const updateDifficultyCount = async (difficulty, count) => {
     try {
-        await axios.patch('http://localhost:5000/session/update-counts', {
+        await axios.patch(`${apiUrl}/session/update-counts`, {
             startDate,
             endDate,
             [`${difficulty}Count`]: count,
