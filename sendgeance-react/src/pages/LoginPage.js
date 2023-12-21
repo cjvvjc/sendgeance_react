@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
 import axios from 'axios';
 
 const LoginPage = ({ setUsername}) => {
+  const { isAuthenticated, login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -13,6 +15,12 @@ const LoginPage = ({ setUsername}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,14 +42,13 @@ const LoginPage = ({ setUsername}) => {
 
       // Check the server's response
       if (response.data.success) {
-        setUsername(response.data.username);
-        navigate('/'); // Redirect to home page on successful login
+        login({ username: response.data.username });
+        navigate('/', { state: { username: response.data.username } });
       } else {
-        // Handle failed login attempt (e.g., show error message)
+        console.log("Failed Login")// Handle failed login attempt (e.g., show error message)
       }
     } catch (error) {
       console.error('Login error:', error);
-      // Handle errors (e.g., show error message)
     }
   };
 

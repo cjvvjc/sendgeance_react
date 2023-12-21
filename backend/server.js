@@ -1,23 +1,28 @@
 require('dotenv').config();
 const path = require("path");
 const express = require('express');
-const app = express();
 const mongoose = require('mongoose');
 const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const passportLocalMongoose = require("passport-local-mongoose")
 const cors = require('cors');
+const MongoStore = require('connect-mongo');
 
-app.use(cors());
+const app = express();
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 // app.use(express.static(path.join(__dirname, 'path_to_your_react_build_folder')));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to DB'))
   .catch(error => console.log(error.message))
-
-  
 
   const UserSchema = new mongoose.Schema({
     username: {
@@ -30,7 +35,7 @@ mongoose.connect(process.env.MONGO_URI)
     } 
   })
 
-  const SessionSchema = new mongoose.Schema({
+  const WorkoutSessionSchema = new mongoose.Schema({
     startDate: {
       type: Date,
       required: true,
@@ -80,6 +85,10 @@ mongoose.connect(process.env.MONGO_URI)
   })
 
 const WorkoutSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   exerciseGroup: {
     type: String,
     required: false
@@ -114,13 +123,21 @@ UserSchema.plugin(passportLocalMongoose)
 
 const User = mongoose.model('User', UserSchema);
 const Workout = mongoose.model('Workout', WorkoutSchema);
-const Session = mongoose.model('Session', SessionSchema);
+const WorkoutSession = mongoose.model('WorkoutSession', WorkoutSessionSchema);
 
 app.use(session({
   secret: "this is Sendgeance",
   resave: false,
-  saveUninitialized: false
-}))
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+    sameSite: "lax"
+  }
+}));
+
+console.log("Environment:", process.env.NODE_ENV);
 
 app.use(passport.initialize());
 app.use(passport.session())
@@ -134,8 +151,15 @@ app.use((req, res, next) => {
   next()
 })
 
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).send('User not authenticated');
+}
+
 //get all workouts
-app.get('/workouts/all', async (req, res) => {
+app.get('/workouts/all', isAuthenticated, async (req, res) => {
   try {
     const workouts = await Workout.find();
     res.send(workouts);
@@ -145,7 +169,7 @@ app.get('/workouts/all', async (req, res) => {
 });
 
 //get today's workout
-app.get('/workout/current', async (req, res) => {
+app.get('/workout/current', isAuthenticated, async (req, res) => {
   try {
     const startDate = new Date(req.query.startDate);
     const endDate = new Date(req.query.endDate);
@@ -175,7 +199,7 @@ app.get('/workout/current', async (req, res) => {
 });
 
 //get last workout
-app.get('/workouts/last', async (req, res) => {
+app.get('/workouts/last', isAuthenticated, async (req, res) => {
   try {
     const lastWorkout = await Workout.findOne().sort({ createdAt: -1 });
 
@@ -190,7 +214,7 @@ app.get('/workouts/last', async (req, res) => {
 });
 
 //get workout
-app.get('/workouts/:id', async (req, res) => {
+app.get('/workouts/:id', isAuthenticated, async (req, res) => {
   try {
     const workout = await Workout.findById(req.params.id);
     if (!workout) {
@@ -204,7 +228,7 @@ app.get('/workouts/:id', async (req, res) => {
 });
 
 // create new workout
-app.post('/workouts', async (req, res) => {
+app.post('/workouts', isAuthenticated, async (req, res) => {
   try {
     const newWorkout = new Workout({
       ...req.body,
@@ -223,7 +247,7 @@ app.post('/workouts', async (req, res) => {
     const startDate = new Date(savedWorkout.createdAt).setHours(0, 0, 0, 0);
     const endDate = new Date(savedWorkout.createdAt).setHours(23, 59, 59, 999);
 
-    const session = await Session.findOneAndUpdate(
+    const session = await WorkoutSession.findOneAndUpdate(
       { startDate, endDate },
       { startDate, endDate, createdAt: new Date() },
       { upsert: true, new: true }
@@ -241,7 +265,7 @@ app.post('/session/update', async (req, res) => {
   try {
     const { startDate, endDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity } = req.body;
 
-    const existingSession = await Session.findOneAndUpdate(
+    const existingSession = await WorkoutSession.findOneAndUpdate(
       { startDate, endDate },
       { startDate, endDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity },
       { upsert: true, new: true }
@@ -257,7 +281,7 @@ app.post('/session/update', async (req, res) => {
 // Get the latest session counts
 app.get('/session/latest', async (req, res) => {
   try {
-    const latestSession = await Session.findOne().sort({ createdAt: -1 });
+    const latestSession = await WorkoutSession.findOne().sort({ createdAt: -1 });
     if (!latestSession) {
       return res.status(404).send({ error: 'No session data found' });
     }
@@ -275,7 +299,7 @@ app.get('/session/latest', async (req, res) => {
 // Endpoint to get the latest RPE value
 app.get('/session/latest-rpe', async (req, res) => {
   try {
-    const latestSession = await Session.findOne().sort({ createdAt: -1 });
+    const latestSession = await WorkoutSession.findOne().sort({ createdAt: -1 });
     if (!latestSession) {
       return res.status(404).send({ error: 'No session data found' });
     }
@@ -292,7 +316,7 @@ app.post('/session/update-rpe', async (req, res) => {
     const { rateOfPerceivedExertion, startDate, endDate } = req.body;
 
     // Update or create a new session with the new RPE value
-    const updatedSession = await Session.findOneAndUpdate(
+    const updatedSession = await WorkoutSession.findOneAndUpdate(
       { startDate, endDate },
       { rateOfPerceivedExertion },
       { upsert: true, new: true }
@@ -306,25 +330,24 @@ app.post('/session/update-rpe', async (req, res) => {
 });
 
 // New route to update difficulty counts
-app.post('/session/difficulty/update', async (req, res) => {
+app.patch('/session/update-counts', async (req, res) => {
+  const { startDate, endDate, patheticCount, mediumCount, hardCount } = req.body;
+
   try {
-    const { startDate, endDate, difficulty, count } = req.body;
-
-    const existingSession = await Session.findOneAndUpdate(
-      { startDate, endDate },
-      { [`${difficulty}Count`]: count },
-      { upsert: true, new: true }
-    );
-
-    res.send(existingSession);
+      const existingSession = await WorkoutSession.findOneAndUpdate(
+          { startDate, endDate },
+          { $set: { patheticCount, mediumCount, hardCount } },
+          { new: true }
+      );
+      res.send(existingSession);
   } catch (error) {
-    console.error('Error updating difficulty counts:', error);
-    res.status(500).send({ error: 'Error updating difficulty counts' });
+      console.error('Error updating session counts:', error);
+      res.status(500).send({ error: 'Error updating session counts' });
   }
 });
 
 //edit a workout
-app.put(`/workouts/:id`, async (req, res) => {
+app.put(`/workouts/:id`, isAuthenticated, async (req, res) => {
   try {
     const editWorkout = await Workout.findByIdAndUpdate(req.params.id, req.body, { new: true })
     res.send(editWorkout)
@@ -335,7 +358,7 @@ app.put(`/workouts/:id`, async (req, res) => {
 });
 
 //delete a workout
-app.delete(`/workouts/:id`, async (req, res) => {
+app.delete(`/workouts/:id`, isAuthenticated, async (req, res) => {
   try {
     await Workout.findByIdAndDelete(req.params.id)
     const updatedWorkouts = await Workout.find();
@@ -345,6 +368,11 @@ app.delete(`/workouts/:id`, async (req, res) => {
     res.status(500).send({ error: 'Error deleting the workout' });
   }
 });
+
+app.get('/auth/check', (req, res) => {
+  res.json({ isAuthenticated: req.isAuthenticated() });
+});
+
 // Login route
 app.post('/login', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {

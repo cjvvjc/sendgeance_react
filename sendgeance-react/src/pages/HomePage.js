@@ -4,10 +4,13 @@ import mainLogo from "../images/sendgeance-high-resolution-logo.jpeg"
 import { Button, Container, Row, Col, Image} from 'react-bootstrap'
 import "../styles/styles.css"
 
-const HomePage = ({ username }) => {
+const HomePage = () => {
   const location = useLocation();
 
   const isHomePage = location.pathname === "/";
+
+  const { username } = location.state || {};
+
 
   return (
     <Container className={isHomePage ? "homepage-background" : ""}>

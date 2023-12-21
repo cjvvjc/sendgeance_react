@@ -5,60 +5,68 @@ import axios from 'axios';
 const TryHardTracker = ({ startDate, endDate, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
 
   const handleIncrement = async (difficulty) => {
-    // Update the count and send to the server
+    let newCount;
     switch (difficulty) {
       case 'pathetic':
-        setPatheticCount(patheticCount + 1);
-        await updateDifficultyCount('pathetic', patheticCount + 1);
+        newCount = patheticCount + 1;
+        setPatheticCount(newCount);
         break;
       case 'medium':
-        setMediumCount(mediumCount + 1);
-        await updateDifficultyCount('medium', mediumCount + 1);
+        newCount = mediumCount + 1;
+        setMediumCount(newCount);
         break;
       case 'hard':
-        setHardCount(hardCount + 1);
-        await updateDifficultyCount('hard', hardCount + 1);
+        newCount = hardCount + 1;
+        setHardCount(newCount);
         break;
       default:
         break;
     }
-  };
-
-  const handleDecrement = async (difficulty) => {
-    // Update the count and send to the server
-    switch (difficulty) {
-      case 'pathetic':
-        setPatheticCount(Math.max(0, patheticCount - 1));
-        await updateDifficultyCount('pathetic', Math.max(0, patheticCount - 1));
-        break;
-      case 'medium':
-        setMediumCount(Math.max(0, mediumCount - 1));
-        await updateDifficultyCount('medium', Math.max(0, mediumCount - 1));
-        break;
-      case 'hard':
-        setHardCount(Math.max(0, hardCount - 1));
-        await updateDifficultyCount('hard', Math.max(0, hardCount - 1));
-        break;
-      default:
-        break;
-    }
-  };
-
-  const updateDifficultyCount = async (difficulty, count) => {
+  
     try {
-      await axios.post('http://localhost:5000/session/difficulty/update', {
-        startDate,
-        endDate,
-        difficulty,
-        count,
-      });
+      await updateDifficultyCount(difficulty, newCount);
     } catch (error) {
       console.error('Error updating difficulty count:', error);
     }
   };
 
-  console.log("TryHardTracker Props:", patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount);
+  const handleDecrement = async (difficulty) => {
+    let newCount;
+    switch (difficulty) {
+      case 'pathetic':
+        newCount = Math.max(0, patheticCount - 1);
+        setPatheticCount(newCount);
+        break;
+      case 'medium':
+        newCount = Math.max(0, mediumCount - 1);
+        setMediumCount(newCount);
+        break;
+      case 'hard':
+        newCount = Math.max(0, hardCount - 1);
+        setHardCount(newCount);
+        break;
+      default:
+        break;
+    }
+  
+    try {
+      await updateDifficultyCount(difficulty, newCount);
+    } catch (error) {
+      console.error('Error updating difficulty count:', error);
+    }
+  };
 
+  const updateDifficultyCount = async (difficulty, count) => {
+    try {
+        await axios.patch('http://localhost:5000/session/update-counts', {
+            startDate,
+            endDate,
+            [`${difficulty}Count`]: count,
+        });
+    } catch (error) {
+        console.error('Error updating difficulty count:', error);
+    }
+  };
 
   return (
     <React.Fragment>
