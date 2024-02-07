@@ -3,9 +3,8 @@ import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col, Image } from 'react-bootstrap';
 import logo from "../images/logo-black.jpeg"
-import TryHardTracker from '../components/TryHardTracker';
 
-const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
+const NewWorkoutPage = ({ updateDates }) => {
   
   //initialize state variable. create elements to store all info typed into form
   const [workout, setWorkout] = useState({
@@ -62,19 +61,6 @@ const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCo
 
         updateDates(currentDate, currentDate);
 
-        //  const storedSubmissionTime = localStorage.getItem('lastSubmissionTime');
-        //  if (!storedSubmissionTime) {
-        //     const currentSubmissionTime = new Date();
-        //     var options = { timeZone: 'America/Denver', weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
-        //     setLastSubmissionTime(currentSubmissionTime.toLocaleString('en-US', options));
-
-        //     localStorage.setItem('lastSubmissionTime', currentSubmissionTime.getTime());
-
-            
-
-        //  } else {
-        //    setLastSubmissionTime(new Date(storedSubmissionTime));
-        //  }
       }
     } catch (error) {
       console.error("Error fetching last workout:", error);
@@ -328,7 +314,6 @@ const NewWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCo
     </Row>
   </Container>
 )}
-  <TryHardTracker startDate={startDate} endDate={endDate} />  
       </Container>
   );
 };

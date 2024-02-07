@@ -2,26 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Button, Container, Row, Col, Form, Image, Dropdown} from 'react-bootstrap';
+import { useSession } from '../context/SessionContext';
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css"
 import logo from "../images/logo-black.jpeg"
-import TryHardTracker from "../components/TryHardTracker";
+import moment from 'moment';
 
-
-//stop when get to here
-const moment = require("moment");
-
-const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, mediumCount, setMediumCount, hardCount, setHardCount }) => {
+const CurrentWorkoutPage = ({ updateDates }) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentWorkout, setCurrentWorkout] = useState([]);
   const [sessionTimes, setSessionTimes] = useState({ startTime: null, endTime: null });
   const [showSessionTimes, setShowSessionTimes] = useState(false);
-  const [totalProblems, setTotalProblems] = useState(null);
   const [totalBoulderingProblems, setTotalBoulderingProblems] = useState(null);
-  const [vPointSum, setVPointSum] = useState(null);
-  const [vPointAverage, setVPointAverage] = useState(null);
-  const [sessionDensity, setSessionDensity] = useState(null);
-  const [boulderingSessionDensity, setBoulderingSessionDensity] = useState(null);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [sentCardsCount, setSentCardsCount] = useState(0);
   const [startDate, setStartDate] = useState(null);
@@ -30,10 +22,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
   const [vPointBoulderingSum, setVPointBoulderingSum] = useState(null);
   const [boulderingSessionTime, setBoulderingSessionTime] = useState(null);
 
-  const [rateOfPerceivedExertion, setRateOfPerceivedExertion] = useState(() => {
-    const storedRpeValue = localStorage.getItem('rateOfPerceivedExertion');
-    return storedRpeValue !== null ? parseInt(storedRpeValue, 10) : 0;
-  });
+  const { sessionData, updateSession } = useSession();
 
   const navigate = useNavigate();
 
@@ -87,19 +76,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
       calculateTotalAttempts();
       calculateSentCardsCount();
     }
-  }, [currentWorkout]);
-
-  useEffect(() => {
-    const fetchInitialRpe = async () => {
-      // Replace with your actual API endpoint to fetch RPE
-      const res = await axios.get('http://localhost:5000/session/latest-rpe');
-      if (res.data) {
-        setRateOfPerceivedExertion(res.data.rateOfPerceivedExertion);
-      }
-    };
-  
-    fetchInitialRpe();
-  }, []);  
+  }, [currentWorkout]); 
 
   useEffect(() => {
     const fetchWorkout = async () => {
@@ -132,20 +109,32 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
         }
 
         const totalProblems = res.data.length;
-        setTotalProblems(totalProblems);
+        updateSession(prevSessionData => ({
+          ...prevSessionData,
+          totalProblems,
+        }));
 
         const vPointSum = res.data.reduce((sum, workout) => {
           return sum + parseInt(workout.grade.substring(1), 10);
         }, 0);
 
-        setVPointSum(vPointSum);
+        updateSession(prevSessionData => ({
+          ...prevSessionData,
+          vSum: vPointSum,
+        }));
 
         const vPointAvg = totalProblems > 0 ? Math.round((vPointSum / totalProblems) * 10) / 10 : 0;
-        setVPointAverage(vPointAvg);
+        updateSession(prevSessionData => ({
+          ...prevSessionData,
+          vPointAvg
+        }));
 
         const sessionTimeInMinutes = totalSessionTimeInMinutes();
         const sessionDensityValue = sessionTimeInMinutes > 0 ? (vPointSum / sessionTimeInMinutes).toFixed(2) : 0;
-        setSessionDensity(sessionDensityValue);
+        updateSession(prevSessionData => ({
+          ...prevSessionData,
+          sessionDensityValue
+        }));
 
         //Calculate session start and end times for bouldering problems
         const boulderingSessionTimes = currentWorkout
@@ -173,17 +162,20 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
         setBoulderingSessionTime(boulderingSessionTimeInMinutes);
 
         const boulderingProblemSessionDensity = boulderingSessionTimeInMinutes > 0 ? (vPointBoulderingSum / boulderingSessionTimeInMinutes).toFixed(2) : 0;
-        setBoulderingSessionDensity(boulderingProblemSessionDensity);
+        updateSession(prevSessionData => ({
+          ...prevSessionData,
+          boulderingProblemSessionDensity
+        }));
 
-        const sessionData = {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          rateOfPerceivedExertion,
-          totalProblems,
-          vSum: vPointSum,
-          vAvg: vPointAverage,
-          sessionDensity,
-          boulderingSessionDensity
+        const newSessionData = {
+          ...sessionData, // spread the existing session data
+          startDate: startDate.toISOString(), // update startDate
+          endDate: endDate.toISOString(), // update endDate
+          totalProblems, // you've calculated this above
+          vSum: vPointSum, // you've calculated this above
+          vAvg: vPointAvg, // calculated in this useEffect
+          sessionDensity: sessionDensityValue, // calculated in this useEffect
+          boulderingSessionDensity: boulderingProblemSessionDensity, // calculated in this useEffect
         };
 
         setStartDate(startDate);
@@ -192,32 +184,14 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
         updateDates(startDate, endDate)
 
         // Send a POST request to create or update the Session entry
-        await axios.post('http://localhost:5000/session/update', sessionData);
-
-        localStorage.setItem('rateOfPerceivedExertion', rateOfPerceivedExertion.toString());
+        updateSession(newSessionData)
 
       } catch (error) {
         console.error("Error fetching workout", error);
       }
     };
     fetchWorkout()
-  },[selectedDate, totalSessionTimeInMinutes, rateOfPerceivedExertion, vPointSum, sessionDensity, vPointAverage, boulderingSessionDensity, totalBoulderingSessionTimeInMinutes]);
-
-  const handleRpeSelect = async (value) => {
-    setRateOfPerceivedExertion(value);
-    // Replace with your actual API endpoint to update RPE
-    await axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: value });
-  };
-  
-  useEffect(() => {
-    const today = moment().startOf('day');
-    const selectedMoment = moment(selectedDate).startOf('day');
-  
-    if (!selectedMoment.isSame(today)) {
-      setRateOfPerceivedExertion(0);
-      axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: 0 });
-    }
-  }, [selectedDate]);
+  },[selectedDate, totalSessionTimeInMinutes, totalBoulderingSessionTimeInMinutes]);
 
   const handleDelete = async (id) => {
     try {
@@ -233,58 +207,48 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
     setShowSessionTimes(!showSessionTimes);
   };
 
-  const handleEndSession = async () => {
-    try {
-      // Add any additional logic you need before submitting data
+  // const handleEndSession = async () => {
+  //   try {  
+  //     const newSessionData = {
+  //       startDate: startDate.toISOString(),
+  //       endDate: endDate.toISOString(),
+  //       rateOfPerceivedExertion,
+  //       totalProblems,
+  //       vSum: vPointSum,
+  //       vAvg: vPointAverage,
+  //       sessionDensity,
+  //       boulderingSessionDensity
+  //     };
   
-      // Example: Save additional data or perform any final calculations
-      const sessionData = {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        rateOfPerceivedExertion,
-        totalProblems,
-        vSum: vPointSum,
-        vAvg: vPointAverage,
-        sessionDensity,
-        boulderingSessionDensity
-      };
+  //     // Submit data to the database
+  //     updateSession(newSessionData);
+
+  //     console.log('Session ended and data submitted successfully!');
+
+  //     navigate('/');
+  //   } catch (error) {
+  //     console.error('Error ending session and submitting data:', error);
+  //   }
+  // };
+
+  const handleRpeSelect = async (value) => {
+    // Prepare the session data to be sent to the server
+    const updatedSessionData = {
+      ...sessionData,
+      rateOfPerceivedExertion: value
+    };
   
-      // Submit data to the database
-      await axios.post('http://localhost:5000/session/update', sessionData);
+    updateSession(updatedSessionData);
+  };  
 
-      // Optionally, you can reset or perform any cleanup after ending the session
-      // Reset the state, clear local storage, etc.
-
-      // Reset RPE to 0
-      setRateOfPerceivedExertion(0);
-      await axios.post('http://localhost:5000/session/update-rpe', { rateOfPerceivedExertion: 0 });
-
-      console.log('Session ended and data submitted successfully!');
-
-      navigate('/');
-    } catch (error) {
-      console.error('Error ending session and submitting data:', error);
-    }
-  };
-
-  useEffect(() => {
-    const today = moment().startOf('day');
-    const selectedMoment = moment(selectedDate).startOf('day');
+  // useEffect(() => {
+  //   const sessionTime = totalSessionTimeInMinutes();
+  //   const boulderingSessionTime = totalBoulderingSessionTimeInMinutes();
   
-    if (!selectedMoment.isSame(today)) {
-      setRateOfPerceivedExertion(0);
-      localStorage.setItem('rateOfPerceivedExertion', '0');
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const sessionTime = totalSessionTimeInMinutes();
-    const boulderingSessionTime = totalBoulderingSessionTimeInMinutes();
+  //   console.log("Total Session Time (in minutes):", sessionTime);
+  //   console.log("Total Bouldering Session Time (in minutes):", boulderingSessionTime);
   
-    console.log("Total Session Time (in minutes):", sessionTime);
-    console.log("Total Bouldering Session Time (in minutes):", boulderingSessionTime);
-  
-  }, [totalSessionTimeInMinutes, totalBoulderingSessionTimeInMinutes]);
+  // }, [totalSessionTimeInMinutes, totalBoulderingSessionTimeInMinutes]);
 
   return (
     <Container style={{ marginBottom: '100px' }}>
@@ -299,7 +263,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
       </Row>
       <Row className="mt-4">
         <Col>
-          <p>How Hard Was Your Session? {rateOfPerceivedExertion !== null ? rateOfPerceivedExertion : 'Select an RPE'}</p>
+          <p>How Hard Was Your Session? {sessionData.rateOfPerceivedExertion !== null ? sessionData.rateOfPerceivedExertion : 'Select an RPE'}</p>
           <Dropdown>
             <Dropdown.Toggle variant="success" id="dropdown-basic">
               Select RPE
@@ -318,7 +282,7 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
       <Row className="mt-2 mb-2">
         <Col xs={12}>
         <p style={{ cursor: "pointer", marginBottom: "0" }} onClick={toggleSessionTimes}>
-        {showSessionTimes ? "▲" : "▼"} Total Session Time: {totalSessionTimeInMinutes()} minutes
+        {showSessionTimes ? "▲" : "▼"} Total Session Time: {totalSessionTimeInMinutes()} mins
           </p>
           {showSessionTimes && (
             <div>
@@ -331,14 +295,14 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
             </div>
           )}
           
-          <p style={{ marginBottom: "0" }}>Total Problems: {totalProblems}</p>
-          <p style={{ marginBottom: "0" }}>V Sum: {vPointSum}</p>
-          <p style={{ marginBottom: "0" }}>V Avg: {vPointAverage}</p>
+          <p style={{ marginBottom: "0" }}>Total Problems: {sessionData.totalProblems}</p>
+          <p style={{ marginBottom: "0" }}>V Sum: {sessionData.vSum}</p>
+          <p style={{ marginBottom: "0" }}>V Avg: {sessionData.vAvg}</p>
           <p
             style={{ cursor: "pointer", marginBottom: "0" }}
             onClick={() => setShowSessionDensity(!showSessionDensity)}
           >
-            {showSessionDensity ? "▲" : "▼"} Session Density: {boulderingSessionDensity}
+            {showSessionDensity ? "▲" : "▼"} Session Density: {sessionData.boulderingSessionDensity}
           </p>
           {showSessionDensity && (
             <div>
@@ -392,19 +356,9 @@ const CurrentWorkoutPage = ({ updateDates, patheticCount, setPatheticCount, medi
         </Col>
       )}
       </Row>
-      <Button variant="primary" onClick={handleEndSession}>
+      {/* <Button variant="primary" onClick={handleEndSession}>
         End Session and Submit Data
-      </Button>
-      <TryHardTracker
-        startDate={startDate} 
-        endDate={endDate}
-        patheticCount={patheticCount} 
-        setPatheticCount={setPatheticCount}
-        mediumCount={mediumCount} 
-        setMediumCount={setMediumCount}
-        hardCount={hardCount} 
-        setHardCount={setHardCount}
-      />
+      </Button> */}
     </Container>
   );
 };

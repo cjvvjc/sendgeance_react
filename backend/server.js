@@ -36,13 +36,18 @@ mongoose.connect(process.env.MONGO_URI)
   })
 
   const WorkoutSessionSchema = new mongoose.Schema({
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
     startDate: {
       type: Date,
       required: true,
+      index: true
     },
     endDate: {
       type: Date,
-      required: true,
+      required: false,
     },
     createdAt: {
       type: Date,
@@ -66,21 +71,6 @@ mongoose.connect(process.env.MONGO_URI)
     sessionDensity: {
       type: Number,
       required: false
-    },
-    patheticCount: {
-      type: Number,
-      required: false,
-      default: 0,
-    },
-    mediumCount: {
-      type: Number,
-      required: false,
-      default: 0,
-    },
-    hardCount: {
-      type: Number,
-      required: false,
-      default: 0,
     }
   })
 
@@ -161,7 +151,7 @@ function isAuthenticated(req, res, next) {
 //get all workouts
 app.get('/workouts/all', isAuthenticated, async (req, res) => {
   try {
-    const workouts = await Workout.find();
+    const workouts = await Workout.find({ user:req.user._id });
     res.send(workouts);
   } catch (error) {
     res.status(500).send({ error: 'Error fetching workouts' });
@@ -178,7 +168,8 @@ app.get('/workout/current', isAuthenticated, async (req, res) => {
       createdAt: {
         $gte: startDate,
         $lt: endDate,
-      }
+      },
+      user: req.user._id
     });
 
     if (workouts.length === 0) {
@@ -232,6 +223,7 @@ app.post('/workouts', isAuthenticated, async (req, res) => {
   try {
     const newWorkout = new Workout({
       ...req.body,
+      user: req.user._id,
       createdAt: req.body.createdAt ? new Date(req.body.createdAt) : new Date(),
     });
 
@@ -243,15 +235,15 @@ app.post('/workouts', isAuthenticated, async (req, res) => {
 
     const savedWorkout = await newWorkout.save();
 
-    // Update or create a session entry for the day
-    const startDate = new Date(savedWorkout.createdAt).setHours(0, 0, 0, 0);
-    const endDate = new Date(savedWorkout.createdAt).setHours(23, 59, 59, 999);
+    // // Update or create a session entry for the day
+    // const startDate = new Date(savedWorkout.createdAt).setHours(0, 0, 0, 0);
+    // const endDate = new Date(savedWorkout.createdAt).setHours(23, 59, 59, 999);
 
-    const session = await WorkoutSession.findOneAndUpdate(
-      { startDate, endDate },
-      { startDate, endDate, createdAt: new Date() },
-      { upsert: true, new: true }
-    );
+    // const session = await WorkoutSession.findOneAndUpdate(
+    //   { startDate, endDate },
+    //   { startDate, endDate, createdAt: new Date() },
+    //   { upsert: true, new: true }
+    // );
 
     res.send(savedWorkout);
   } catch (error) {
@@ -261,34 +253,83 @@ app.post('/workouts', isAuthenticated, async (req, res) => {
 });
 
 // Update or create session entry
-app.post('/session/update', async (req, res) => {
+app.post('/session/update', isAuthenticated, async (req, res) => {
   try {
-    const { startDate, endDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity } = req.body;
+    let { startDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity, boulderingSessionDensity } = req.body;
 
-    const existingSession = await WorkoutSession.findOneAndUpdate(
-      { startDate, endDate },
-      { startDate, endDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity },
-      { upsert: true, new: true }
+    // Normalize startDate to the beginning of the day
+    sessionDate = new Date(startDate);
+    sessionDate.setHours(0, 0, 0, 0);
+
+    // let existingSession = await WorkoutSession.findOne({
+    //   user: req.user._id,
+    //   startDate: startDate
+    // });
+
+    // if (!existingSession) {
+    //   existingSession = new WorkoutSession({
+    //     user: req.user._id,
+    //     startDate: startDate,
+    //     // Initialize other fields here if necessary
+    //   });
+    // }
+
+    // Update the session with the provided data, only if they are defined
+    // if (rateOfPerceivedExertion !== undefined) existingSession.rateOfPerceivedExertion = rateOfPerceivedExertion;
+    // if (totalProblems !== undefined) existingSession.totalProblems = totalProblems;
+    // if (vSum !== undefined) existingSession.vSum = vSum;
+    // if (vAvg !== undefined) existingSession.vAvg = vAvg;
+    // if (sessionDensity !== undefined) existingSession.sessionDensity = sessionDensity;
+    // if (boulderingSessionDensity !== undefined) existingSession.boulderingSessionDensity = boulderingSessionDensity;
+
+    // await existingSession.save();
+
+    // res.send(existingSession);
+
+    const updateData = {
+      endDate: req.body.endDate,
+      rateOfPerceivedExertion,
+      totalProblems,
+      vSum,
+      vAvg,
+      sessionDensity,
+      boulderingSessionDensity
+    };
+
+    // Use $set to update only the provided fields
+    let session = await WorkoutSession.findOneAndUpdate(
+      { user: req.user._id, startDate: sessionDate },
+      { $set: updateData },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    res.send(existingSession);
+    res.send(session);
   } catch (error) {
     console.error('Error updating or creating session entry:', error);
     res.status(500).send({ error: 'Error updating or creating session entry' });
   }
 });
 
-// Get the latest session counts
-app.get('/session/latest', async (req, res) => {
+app.get('/session/latest', isAuthenticated, async (req, res) => {
   try {
-    const latestSession = await WorkoutSession.findOne().sort({ createdAt: -1 });
+    const latestSession = await WorkoutSession.findOne({ user: req.user._id })
+                                             .sort({ endDate: -1, createdAt: -1 }) // Sort by endDate and createdAt in descending order
+                                             .limit(1); // Get only the most recent one
+
     if (!latestSession) {
       return res.status(404).send({ error: 'No session data found' });
     }
+
     res.json({
-      patheticCount: latestSession.patheticCount,
-      mediumCount: latestSession.mediumCount,
-      hardCount: latestSession.hardCount
+      startDate: latestSession.startDate,
+      endDate: latestSession.endDate,
+      rateOfPerceivedExertion: latestSession.rateOfPerceivedExertion,
+      totalProblems: latestSession.totalProblems,
+      vSum: latestSession.vSum,
+      vAvg: latestSession.vAvg,
+      sessionDensity: latestSession.sessionDensity,
+      boulderingSessionDensity: latestSession.boulderingSessionDensity
+      // include other session data fields if necessary
     });
   } catch (error) {
     console.error('Error fetching latest session data:', error);
@@ -296,55 +337,51 @@ app.get('/session/latest', async (req, res) => {
   }
 });
 
-// Endpoint to get the latest RPE value
-app.get('/session/latest-rpe', async (req, res) => {
+app.post('/session/end', isAuthenticated, async (req, res) => {
   try {
-    const latestSession = await WorkoutSession.findOne().sort({ createdAt: -1 });
-    if (!latestSession) {
-      return res.status(404).send({ error: 'No session data found' });
-    }
-    res.json({ rateOfPerceivedExertion: latestSession.rateOfPerceivedExertion });
-  } catch (error) {
-    console.error('Error fetching latest RPE value:', error);
-    res.status(500).send({ error: 'Error fetching latest RPE value' });
-  }
-});
+    const { startDate, endDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity, patheticCount, mediumCount, hardCount } = req.body;
 
-// Endpoint to update the RPE value
-app.post('/session/update-rpe', async (req, res) => {
-  try {
-    const { rateOfPerceivedExertion, startDate, endDate } = req.body;
+    let sessionDate = new Date(startDate);
+    sessionDate.setHours(0, 0, 0, 0);
 
-    // Update or create a new session with the new RPE value
-    const updatedSession = await WorkoutSession.findOneAndUpdate(
-      { startDate, endDate },
-      { rateOfPerceivedExertion },
+    // Find or create a session
+    let session = await WorkoutSession.findOneAndUpdate(
+      { user: req.user._id, startDate: sessionDate },
+      {
+        endDate,
+        rateOfPerceivedExertion,
+        totalProblems,
+        vSum,
+        vAvg,
+        sessionDensity
+      },
       { upsert: true, new: true }
     );
 
-    res.send(updatedSession);
+    res.send(session);
   } catch (error) {
-    console.error('Error updating RPE value:', error);
-    res.status(500).send({ error: 'Error updating RPE value' });
+    console.error('Error handling session end:', error);
+    res.status(500).send({ error: 'Error handling session end' });
   }
 });
 
-// New route to update difficulty counts
-app.patch('/session/update-counts', async (req, res) => {
-  const { startDate, endDate, patheticCount, mediumCount, hardCount } = req.body;
-
-  try {
-      const existingSession = await WorkoutSession.findOneAndUpdate(
-          { startDate, endDate },
-          { $set: { patheticCount, mediumCount, hardCount } },
-          { new: true }
-      );
-      res.send(existingSession);
-  } catch (error) {
-      console.error('Error updating session counts:', error);
-      res.status(500).send({ error: 'Error updating session counts' });
-  }
-});
+// Get the latest session counts
+// app.get('/session/latest', isAuthenticated, async (req, res) => {
+//   try {
+//     const latestSession = await WorkoutSession.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+//     if (!latestSession) {
+//       return res.status(404).send({ error: 'No session data found' });
+//     }
+//     res.json({
+//       patheticCount: latestSession.patheticCount,
+//       mediumCount: latestSession.mediumCount,
+//       hardCount: latestSession.hardCount
+//     });
+//   } catch (error) {
+//     console.error('Error fetching latest session data:', error);
+//     res.status(500).send({ error: 'Error fetching latest session data' });
+//   }
+// });
 
 //edit a workout
 app.put(`/workouts/:id`, isAuthenticated, async (req, res) => {
@@ -360,10 +397,11 @@ app.put(`/workouts/:id`, isAuthenticated, async (req, res) => {
 //delete a workout
 app.delete(`/workouts/:id`, isAuthenticated, async (req, res) => {
   try {
+    const workout = await Workout.findOne({ _id: req.params.id, user: req.user._id });
+    if (!workout) {
+      return res.status(404).send({ error: 'Workout not found or not owned by user' });
+    }
     await Workout.findByIdAndDelete(req.params.id)
-    const updatedWorkouts = await Workout.find();
-    res.send(updatedWorkouts);
-    // res.redirect('/')
   } catch (error) {
     res.status(500).send({ error: 'Error deleting the workout' });
   }
