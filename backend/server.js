@@ -255,36 +255,11 @@ app.post('/workouts', isAuthenticated, async (req, res) => {
 // Update or create session entry
 app.post('/session/update', isAuthenticated, async (req, res) => {
   try {
-    let { startDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity, boulderingSessionDensity } = req.body;
+    let { startDate, rateOfPerceivedExertion, totalProblems, vSum, vAvg, sessionDensity, boulderingSessionDensity, hardCount, mediumCount, patheticCount, goodCount } = req.body;
 
     // Normalize startDate to the beginning of the day
     sessionDate = new Date(startDate);
     sessionDate.setHours(0, 0, 0, 0);
-
-    // let existingSession = await WorkoutSession.findOne({
-    //   user: req.user._id,
-    //   startDate: startDate
-    // });
-
-    // if (!existingSession) {
-    //   existingSession = new WorkoutSession({
-    //     user: req.user._id,
-    //     startDate: startDate,
-    //     // Initialize other fields here if necessary
-    //   });
-    // }
-
-    // Update the session with the provided data, only if they are defined
-    // if (rateOfPerceivedExertion !== undefined) existingSession.rateOfPerceivedExertion = rateOfPerceivedExertion;
-    // if (totalProblems !== undefined) existingSession.totalProblems = totalProblems;
-    // if (vSum !== undefined) existingSession.vSum = vSum;
-    // if (vAvg !== undefined) existingSession.vAvg = vAvg;
-    // if (sessionDensity !== undefined) existingSession.sessionDensity = sessionDensity;
-    // if (boulderingSessionDensity !== undefined) existingSession.boulderingSessionDensity = boulderingSessionDensity;
-
-    // await existingSession.save();
-
-    // res.send(existingSession);
 
     const updateData = {
       endDate: req.body.endDate,
@@ -293,7 +268,11 @@ app.post('/session/update', isAuthenticated, async (req, res) => {
       vSum,
       vAvg,
       sessionDensity,
-      boulderingSessionDensity
+      boulderingSessionDensity,
+      hardCount,
+      mediumCount,
+      patheticCount,
+      goodCount
     };
 
     // Use $set to update only the provided fields
@@ -313,8 +292,8 @@ app.post('/session/update', isAuthenticated, async (req, res) => {
 app.get('/session/latest', isAuthenticated, async (req, res) => {
   try {
     const latestSession = await WorkoutSession.findOne({ user: req.user._id })
-                                             .sort({ endDate: -1, createdAt: -1 }) // Sort by endDate and createdAt in descending order
-                                             .limit(1); // Get only the most recent one
+                                            .sort({ endDate: -1, createdAt: -1 }) // Sort by endDate and createdAt in descending order
+                                            .limit(1); // Get only the most recent one
 
     if (!latestSession) {
       return res.status(404).send({ error: 'No session data found' });
@@ -328,7 +307,11 @@ app.get('/session/latest', isAuthenticated, async (req, res) => {
       vSum: latestSession.vSum,
       vAvg: latestSession.vAvg,
       sessionDensity: latestSession.sessionDensity,
-      boulderingSessionDensity: latestSession.boulderingSessionDensity
+      boulderingSessionDensity: latestSession.boulderingSessionDensity,
+      hardCount: latestSession.hardCount,
+      mediumCount: latestSession.mediumCount,
+      patheticCount: latestSession.hardCount,
+      goodCount: latestSession.hardCount
       // include other session data fields if necessary
     });
   } catch (error) {
