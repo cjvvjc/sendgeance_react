@@ -14,6 +14,10 @@ const initialVSum = 0; // Example initial value
 const initialVAvg = 0; // Example initial value
 const initialSessionDensity = 0; // Example initial value
 const initialBoulderingSessionDensity = 0; // Example initial value
+const initialPatheticCount = 0;
+const initialMediumCount = 0;
+const initialHardCount = 0;
+const initialGoodCount = 0;
 
 export const SessionProvider = ({ children }) => {
   const [sessionData, setSessionData] = useState({ 
@@ -25,6 +29,10 @@ export const SessionProvider = ({ children }) => {
     vAvg: initialVAvg,
     sessionDensity: initialSessionDensity,
     boulderingSessionDensity: initialBoulderingSessionDensity,
+    patheticCount: initialPatheticCount,
+    mediumCount: initialMediumCount,
+    hardCount: initialHardCount,
+    goodCount: initialGoodCount
   });
   
   const [isDataFetched, setIsDataFetched] = useState(false);

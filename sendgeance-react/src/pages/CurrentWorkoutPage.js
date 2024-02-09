@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, Button, Container, Row, Col, Form, Image, Dropdown} from 'react-bootstrap';
 import { useSession } from '../context/SessionContext';
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css"
 import logo from "../images/logo-black.jpeg"
 import moment from 'moment';
+import TryHardTracker from '../components/TryHardTracker';
 
-const CurrentWorkoutPage = ({ updateDates }) => {
+const CurrentWorkoutPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentWorkout, setCurrentWorkout] = useState([]);
   const [sessionTimes, setSessionTimes] = useState({ startTime: null, endTime: null });
@@ -16,15 +17,11 @@ const CurrentWorkoutPage = ({ updateDates }) => {
   const [totalBoulderingProblems, setTotalBoulderingProblems] = useState(null);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [sentCardsCount, setSentCardsCount] = useState(0);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
   const [showSessionDensity, setShowSessionDensity] = useState(false);
   const [vPointBoulderingSum, setVPointBoulderingSum] = useState(null);
   const [boulderingSessionTime, setBoulderingSessionTime] = useState(null);
 
   const { sessionData, updateSession } = useSession();
-
-  const navigate = useNavigate();
 
   // Calculate total session time in minutes
   const totalSessionTimeInMinutes = useCallback(() => {
@@ -178,11 +175,6 @@ const CurrentWorkoutPage = ({ updateDates }) => {
           boulderingSessionDensity: boulderingProblemSessionDensity, // calculated in this useEffect
         };
 
-        setStartDate(startDate);
-        setEndDate(endDate);
-
-        updateDates(startDate, endDate)
-
         // Send a POST request to create or update the Session entry
         updateSession(newSessionData)
 
@@ -207,30 +199,6 @@ const CurrentWorkoutPage = ({ updateDates }) => {
     setShowSessionTimes(!showSessionTimes);
   };
 
-  // const handleEndSession = async () => {
-  //   try {  
-  //     const newSessionData = {
-  //       startDate: startDate.toISOString(),
-  //       endDate: endDate.toISOString(),
-  //       rateOfPerceivedExertion,
-  //       totalProblems,
-  //       vSum: vPointSum,
-  //       vAvg: vPointAverage,
-  //       sessionDensity,
-  //       boulderingSessionDensity
-  //     };
-  
-  //     // Submit data to the database
-  //     updateSession(newSessionData);
-
-  //     console.log('Session ended and data submitted successfully!');
-
-  //     navigate('/');
-  //   } catch (error) {
-  //     console.error('Error ending session and submitting data:', error);
-  //   }
-  // };
-
   const handleRpeSelect = async (value) => {
     // Prepare the session data to be sent to the server
     const updatedSessionData = {
@@ -241,24 +209,16 @@ const CurrentWorkoutPage = ({ updateDates }) => {
     updateSession(updatedSessionData);
   };  
 
-  // useEffect(() => {
-  //   const sessionTime = totalSessionTimeInMinutes();
-  //   const boulderingSessionTime = totalBoulderingSessionTimeInMinutes();
-  
-  //   console.log("Total Session Time (in minutes):", sessionTime);
-  //   console.log("Total Bouldering Session Time (in minutes):", boulderingSessionTime);
-  
-  // }, [totalSessionTimeInMinutes, totalBoulderingSessionTimeInMinutes]);
-
   return (
+    <>
     <Container style={{ marginBottom: '100px' }}>
-      <Image className="img-fluid" src={logo} alt=""/>
+      <Image className="img-fluid" src={logo} alt="" />
       <Row className="mt-4">
         <Col>
-        <Form.Group controlId="datePicker">
-          <Form.Label>Select Date:</Form.Label>
-          <DatePicker selected={selectedDate} onChange={(date) => setSelectedDate(date)}/>
-        </Form.Group>
+          <Form.Group controlId="datePicker">
+            <Form.Label>Select Date:</Form.Label>
+            <DatePicker selected={selectedDate} onChange={(date) => setSelectedDate(date)} />
+          </Form.Group>
         </Col>
       </Row>
       <Row className="mt-4">
@@ -281,8 +241,8 @@ const CurrentWorkoutPage = ({ updateDates }) => {
       </Row>
       <Row className="mt-2 mb-2">
         <Col xs={12}>
-        <p style={{ cursor: "pointer", marginBottom: "0" }} onClick={toggleSessionTimes}>
-        {showSessionTimes ? "▲" : "▼"} Total Session Time: {totalSessionTimeInMinutes()} mins
+          <p style={{ cursor: "pointer", marginBottom: "0" }} onClick={toggleSessionTimes}>
+            {showSessionTimes ? "▲" : "▼"} Total Session Time: {totalSessionTimeInMinutes()} mins
           </p>
           {showSessionTimes && (
             <div>
@@ -294,7 +254,7 @@ const CurrentWorkoutPage = ({ updateDates }) => {
               </p>
             </div>
           )}
-          
+
           <p style={{ marginBottom: "0" }}>Total Problems: {sessionData.totalProblems}</p>
           <p style={{ marginBottom: "0" }}>V Sum: {sessionData.vSum}</p>
           <p style={{ marginBottom: "0" }}>V Avg: {sessionData.vAvg}</p>
@@ -329,7 +289,7 @@ const CurrentWorkoutPage = ({ updateDates }) => {
         {currentWorkout && Array.isArray(currentWorkout) && currentWorkout.length > 0 ? (
           currentWorkout.map((workout) => (
             <Col md={3} className='mb-4' key={workout._id}>
-              <Card style={{width: '18rem'}}>
+              <Card style={{ width: '18rem' }}>
                 <Card.Body>
                   <Card.Title>{workout.exerciseGroup}</Card.Title>
                   <Card.Text style={{ marginBottom: "0" }}>Exercise: {workout.exercise}</Card.Text>
@@ -349,17 +309,19 @@ const CurrentWorkoutPage = ({ updateDates }) => {
                 </Card.Body>
               </Card>
             </Col>
-        ))
-      ) : (
-        <Col>
-          <p>Loading...</p>
-        </Col>
-      )}
+          ))
+        ) : (
+          <Col>
+            <p>Loading...</p>
+          </Col>
+        )}
       </Row>
       {/* <Button variant="primary" onClick={handleEndSession}>
-        End Session and Submit Data
-      </Button> */}
+      End Session and Submit Data
+    </Button> */}
     </Container>
+    <TryHardTracker style={{ position: 'fixed', bottom: 0, width: '100%', zIndex: 1000 }} />
+    </>
   );
 };
 

@@ -17,13 +17,7 @@ import ProtectedRoute from './ProtectedRoute';
 axios.defaults.withCredentials = true;
 
 function App() {
-  const [dates, setDates] = useState({ startDate: null, endDate: null });
   const [username, setUsername] = useState("");
-
-  const updateDates = (startDate, endDate) => {
-    setDates({ startDate, endDate });
-  };
-
   
   return (
     <AuthProvider>
@@ -40,37 +34,27 @@ function App() {
             <Route path="/login" element={<LoginPage setUsername={setUsername} />} />       
             <Route path="/workouts/new" element={
               <ProtectedRoute>
-                <NewWorkoutPage
-                  updateDates={updateDates} 
-                />
+                <NewWorkoutPage />
               </ProtectedRoute>
             } />
             <Route path="/workouts/:id" element={
               <ProtectedRoute>
-                <WorkoutPage 
-                  updateDates={updateDates} 
-                />
+                <WorkoutPage />
               </ProtectedRoute>
             } />
             <Route path="/workout/edit/:id" element={
               <ProtectedRoute>
-                <EditWorkoutPage
-                  updateDates={updateDates} 
-                /> 
+                <EditWorkoutPage /> 
               </ProtectedRoute>
             } />
             <Route path="/workout/current" element={
               <ProtectedRoute>
-                <CurrentWorkoutPage
-                  updateDates={updateDates}
-                />
+                <CurrentWorkoutPage />
               </ProtectedRoute>
             } />
             <Route path="/workouts/all" element={
               <ProtectedRoute>
-                <AllWorkoutsPage 
-                  updateDates={updateDates} 
-                />
+                <AllWorkoutsPage />
               </ProtectedRoute>
             } />
           </Routes>

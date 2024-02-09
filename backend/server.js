@@ -71,6 +71,22 @@ mongoose.connect(process.env.MONGO_URI)
     sessionDensity: {
       type: Number,
       required: false
+    },
+    patheticCount: {
+      type: Number,
+      required: false
+    },
+    mediumCount: {
+      type: Number,
+      required: false
+    },
+    hardCount: {
+      type: Number,
+      required: false
+    },
+    goodCount: {
+      type: Number,
+      required: false
     }
   })
 
@@ -292,28 +308,44 @@ app.post('/session/update', isAuthenticated, async (req, res) => {
 app.get('/session/latest', isAuthenticated, async (req, res) => {
   try {
     const latestSession = await WorkoutSession.findOne({ user: req.user._id })
-                                            .sort({ endDate: -1, createdAt: -1 }) // Sort by endDate and createdAt in descending order
-                                            .limit(1); // Get only the most recent one
+                                            .sort({ endDate: -1, createdAt: -1 })
+                                            .limit(1);
 
     if (!latestSession) {
       return res.status(404).send({ error: 'No session data found' });
     }
 
-    res.json({
-      startDate: latestSession.startDate,
-      endDate: latestSession.endDate,
-      rateOfPerceivedExertion: latestSession.rateOfPerceivedExertion,
-      totalProblems: latestSession.totalProblems,
-      vSum: latestSession.vSum,
-      vAvg: latestSession.vAvg,
-      sessionDensity: latestSession.sessionDensity,
-      boulderingSessionDensity: latestSession.boulderingSessionDensity,
-      hardCount: latestSession.hardCount,
-      mediumCount: latestSession.mediumCount,
-      patheticCount: latestSession.hardCount,
-      goodCount: latestSession.hardCount
-      // include other session data fields if necessary
-    });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionStartDate = new Date(latestSession.startDate);
+    sessionStartDate.setHours(0, 0, 0, 0);
+    const sessionEndDate = new Date(latestSession.endDate);
+
+    // Check if today is after the sessionStartDate but before the sessionEndDate
+    if (today >= sessionStartDate && today <= sessionEndDate) {
+      // If today falls within the session's duration, return the existing session data
+      return res.json(latestSession);
+    } else if (today > sessionEndDate) {
+      // If today is after the session's endDate, reset the session for a new day
+      return res.json({
+        startDate: today.toISOString(),
+        endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString(),
+        rateOfPerceivedExertion: 0,
+        totalProblems: 0,
+        vSum: 0,
+        vAvg: 0,
+        sessionDensity: 0,
+        boulderingSessionDensity: 0,
+        patheticCount: 0,
+        mediumCount: 0,
+        hardCount: 0,
+        goodCount: 0
+        // Reset other fields as needed
+      });
+    }
+
+    // If none of the above conditions match, just return the latest session data
+    res.json(latestSession);
   } catch (error) {
     console.error('Error fetching latest session data:', error);
     res.status(500).send({ error: 'Error fetching latest session data' });
@@ -347,24 +379,6 @@ app.post('/session/end', isAuthenticated, async (req, res) => {
     res.status(500).send({ error: 'Error handling session end' });
   }
 });
-
-// Get the latest session counts
-// app.get('/session/latest', isAuthenticated, async (req, res) => {
-//   try {
-//     const latestSession = await WorkoutSession.findOne({ user: req.user._id }).sort({ createdAt: -1 });
-//     if (!latestSession) {
-//       return res.status(404).send({ error: 'No session data found' });
-//     }
-//     res.json({
-//       patheticCount: latestSession.patheticCount,
-//       mediumCount: latestSession.mediumCount,
-//       hardCount: latestSession.hardCount
-//     });
-//   } catch (error) {
-//     console.error('Error fetching latest session data:', error);
-//     res.status(500).send({ error: 'Error fetching latest session data' });
-//   }
-// });
 
 //edit a workout
 app.put(`/workouts/:id`, isAuthenticated, async (req, res) => {

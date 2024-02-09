@@ -82,8 +82,8 @@ const AllWorkoutsPage = ({ updateDates }) => {
           </Button>
           {selectedDate && workoutsByDay[selectedDate] ? (
             workoutsByDay[selectedDate].map((workout) => (
-            <Row className="mt-4">
-              <Col md={4} className='mb-4' key={workout._id}>
+            <Row className="mt-4" key={workout._id}>
+              <Col md={4} className='mb-4'>
                 <ListGroup horizontal className="text-center" style={{ marginBottom: '-40px' }}>
                   <ListGroup.Item>Type: {workout.exerciseGroup}</ListGroup.Item>
                   <ListGroup.Item>Exercise: {workout.exercise}</ListGroup.Item>
