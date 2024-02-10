@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 
 const SessionContext = createContext();
 
@@ -19,10 +19,10 @@ const initialMediumCount = 0;
 const initialHardCount = 0;
 const initialGoodCount = 0;
 
-export const SessionProvider = ({ children }) => {
-  const [sessionData, setSessionData] = useState({ 
-    startDate: initialStartDate, 
-    endDate: initialEndDate, 
+export function SessionProvider({ children }) {
+  const [sessionData, setSessionData] = useState({
+    startDate: initialStartDate,
+    endDate: initialEndDate,
     rateOfPerceivedExertion: initialRateOfPerceivedExertion,
     totalProblems: initialTotalProblems,
     vSum: initialVSum,
@@ -32,48 +32,50 @@ export const SessionProvider = ({ children }) => {
     patheticCount: initialPatheticCount,
     mediumCount: initialMediumCount,
     hardCount: initialHardCount,
-    goodCount: initialGoodCount
+    goodCount: initialGoodCount,
   });
-  
+
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [shouldUpdate, setShouldUpdate] = useState(false);
 
   useEffect(() => {
     let isComponentMounted = true;
-  
+
     const fetchInitialSessionData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/session/latest');
+        const response = await axios.get(
+          "http://localhost:5000/session/latest",
+        );
         if (response.data && isComponentMounted) {
           setSessionData(response.data);
           setIsDataFetched(true);
         }
       } catch (error) {
-        console.error('Error fetching initial session data:', error);
+        console.error("Error fetching initial session data:", error);
       }
     };
-  
+
     if (!isDataFetched) {
       fetchInitialSessionData();
     }
-  
+
     return () => {
       isComponentMounted = false; // Cleanup function to avoid setting state on unmounted component
     };
-  }, [isDataFetched]); // Only run on mount and when `isDataFetched` change  
+  }, [isDataFetched]); // Only run on mount and when `isDataFetched` change
 
   // API call to send session data update immediately
   useEffect(() => {
     const sendUpdate = async () => {
       try {
-        await axios.post('http://localhost:5000/session/update', sessionData);
+        await axios.post("http://localhost:5000/session/update", sessionData);
         setShouldUpdate(false); // Reset the flag after sending update
-        console.log('Session data updated');
+        console.log("Session data updated");
       } catch (error) {
-        console.error('Error updating session data:', error);
+        console.error("Error updating session data:", error);
       }
     };
-  
+
     if (shouldUpdate && Object.keys(sessionData).length > 0) {
       sendUpdate();
     }
@@ -81,7 +83,7 @@ export const SessionProvider = ({ children }) => {
 
   // Function to update session data
   const updateSession = (newData) => {
-    setSessionData(prev => ({ ...prev, ...newData }));
+    setSessionData((prev) => ({ ...prev, ...newData }));
     setShouldUpdate(true); // Only set to true if user initiated the change
   };
 
@@ -90,4 +92,4 @@ export const SessionProvider = ({ children }) => {
       {isDataFetched ? children : <div>Loading...</div>}
     </SessionContext.Provider>
   );
-};
+}

@@ -2,32 +2,32 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Button, Container, Image } from 'react-bootstrap';
-import logo from "../images/logo-black.jpeg"
+import logo from '../images/logo-black.jpeg';
 
 const EditWorkoutPage = ({ updateDates }) => {
   // makes call to router to route to pages
   const navigate = useNavigate();
-  const {id} = useParams();
+  const { id } = useParams();
 
   //initialize state variable. create elements to store all info typed into form
   const [workout, editWorkout] = useState({
-    exerciseGroup: "",
-    exercise: "",
-    attempts: "",
-    grade: "",
-    angle: "",
-    send: ""
+    exerciseGroup: '',
+    exercise: '',
+    attempts: '',
+    grade: '',
+    angle: '',
+    send: '',
   });
 
   // const { exercise, attempts, grade, angle, send, createdAt } = workout;
 
   const [tempWorkout, setTempWorkout] = useState({
-    exerciseGroup: "",
-    exercise: "",
-    attempts: "",
-    grade: "",
-    angle: "",
-    send: ""
+    exerciseGroup: '',
+    exercise: '',
+    attempts: '',
+    grade: '',
+    angle: '',
+    send: '',
   });
 
   const [changed, setChanged] = useState(false);
@@ -41,53 +41,60 @@ const EditWorkoutPage = ({ updateDates }) => {
     fetchWorkout();
   }, [id]);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setChanged(true);
     setTempWorkout((currWorkout) => {
       return {
-        ...currWorkout, 
-        [e.target.name]: e.target.value
+        ...currWorkout,
+        [e.target.name]: e.target.value,
       };
     });
-   } 
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/workouts/${id}`, tempWorkout)
+      await axios.put(`http://localhost:5000/workouts/${id}`, tempWorkout);
       setChanged(false);
       navigate('/');
     } catch (error) {
-      console.log("Error Updating workout", error);
+      console.log('Error Updating workout', error);
     }
-    
   };
 
-  return(
-    <Container className='mt-4' style={{ marginBottom: '100px' }}>
-      <Image className="img-fluid" src={logo} alt=""/>
+  return (
+    <Container className="mt-4" style={{ marginBottom: '100px' }}>
+      <Image className="img-fluid" src={logo} alt="" />
       <Form>
-      <Form.Group>
-          <Form.Select name= "exercise" onChange={handleChange} value={tempWorkout.exercise}>
+        <Form.Group>
+          <Form.Select
+            name="exercise"
+            onChange={handleChange}
+            value={tempWorkout.exercise}
+          >
             <option value="">Exercise</option>
-              <option value="Contrast Warmup">Contrast Warmup</option>
-              <option value="One Touch">One Touch</option>
-              <option value="Hovers - Before">Hovers - Before</option>
-              <option value="Hovers - After">Hovers - After</option>
-              <option value="Rooting Feet">Rooting Feet</option>
-              <option value="Rooting Hands">Rooting Hands</option>
-              <option value="Rooting Both">Rooting Both</option>
-              <option value="Perfect Repeat">Perfect Repeat</option>
-              <option value="Match Hand/Foot">Match Hand/Foot</option>
-              <option value="One Leg">One Leg</option>
-              <option value="Deadpoint Practice">Deadpoint Practice</option>
-              <option value="Matching Techniques">Matching Techniques</option>
-              <option value="Free Climb">Free Climb</option>
+            <option value="Contrast Warmup">Contrast Warmup</option>
+            <option value="One Touch">One Touch</option>
+            <option value="Hovers - Before">Hovers - Before</option>
+            <option value="Hovers - After">Hovers - After</option>
+            <option value="Rooting Feet">Rooting Feet</option>
+            <option value="Rooting Hands">Rooting Hands</option>
+            <option value="Rooting Both">Rooting Both</option>
+            <option value="Perfect Repeat">Perfect Repeat</option>
+            <option value="Match Hand/Foot">Match Hand/Foot</option>
+            <option value="One Leg">One Leg</option>
+            <option value="Deadpoint Practice">Deadpoint Practice</option>
+            <option value="Matching Techniques">Matching Techniques</option>
+            <option value="Free Climb">Free Climb</option>
           </Form.Select>
         </Form.Group>
 
         <Form.Group>
-          <Form.Select name="attempts" onChange={handleChange} value={tempWorkout.attempts}>
+          <Form.Select
+            name="attempts"
+            onChange={handleChange}
+            value={tempWorkout.attempts}
+          >
             <option value="">Attempts</option>
             <option value="Flash">Flash</option>
             <option value="1">1</option>
@@ -144,7 +151,11 @@ const EditWorkoutPage = ({ updateDates }) => {
         </Form.Group>
 
         <Form.Group>
-          <Form.Select name="grade" onChange={handleChange} value={tempWorkout.grade}>
+          <Form.Select
+            name="grade"
+            onChange={handleChange}
+            value={tempWorkout.grade}
+          >
             <option value="">Grade</option>
             <option value="V0">V0</option>
             <option value="V1">V1</option>
@@ -166,7 +177,11 @@ const EditWorkoutPage = ({ updateDates }) => {
         </Form.Group>
 
         <Form.Group>
-          <Form.Select name="angle" onChange={handleChange} value={tempWorkout.angle}>
+          <Form.Select
+            name="angle"
+            onChange={handleChange}
+            value={tempWorkout.angle}
+          >
             <option value="">Angle</option>
             <option value="slab">slab</option>
             <option value="0\U+00B0">{'0\u00b0'}</option>
@@ -190,7 +205,12 @@ const EditWorkoutPage = ({ updateDates }) => {
             <option value="90&#xb0">{'90\u00b0'}</option>
           </Form.Select>
           <Form.Label>Send</Form.Label>
-          <Form.Control  type="text" name="send" placeholder="Send?" onChange={handleChange}/>
+          <Form.Control
+            type="text"
+            name="send"
+            placeholder="Send?"
+            onChange={handleChange}
+          />
         </Form.Group>
         {/* <Form.Group>
           <Form.Label>Exercise</Form.Label>
@@ -211,12 +231,12 @@ const EditWorkoutPage = ({ updateDates }) => {
           <Form.Label>Send</Form.Label>
           <Form.Control type="text" name="send" value={tempWorkout.send} onChange={handleChange}/>
         </Form.Group> */}
-      
+
         {changed ? (
           <>
             <Button
-              onClick={e => {
-                setTempWorkout({...workout});
+              onClick={(e) => {
+                setTempWorkout({ ...workout });
                 setChanged(false);
               }}
             >
@@ -230,7 +250,7 @@ const EditWorkoutPage = ({ updateDates }) => {
               Save
             </Button>
           </>
-            ) : null}
+        ) : null}
       </Form>
     </Container>
   );

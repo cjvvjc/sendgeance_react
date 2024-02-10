@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import axios from 'axios';
+import React, { useState, useContext, useEffect } from "react";
+import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
+import { AuthContext } from "../AuthContext";
 
-const RegistrationPage = ({ onRegister }) => {
+function LoginPage({ setUsername }) {
+  const { isAuthenticated, login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
+    username: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,29 +28,29 @@ const RegistrationPage = ({ onRegister }) => {
       [name]: value,
     }));
   };
-
   const handleTogglePassword = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
     try {
-      // Add form validation logic here if needed
-  
-      // Make an HTTP POST request to your server
-      const response = await axios.post('http://localhost:5000/register', formData);
-  
+      // Send a POST request to the server's login endpoint
+      const response = await axios.post(
+        "http://localhost:5000/login",
+        formData,
+      );
+      console.log("data", response.data);
+
+      // Check the server's response
       if (response.data.success) {
-        // Redirect to login page on successful registration
-        navigate('/login');
+        login({ username: response.data.username });
+        navigate("/", { state: { username: response.data.username } });
       } else {
-        // Handle registration failure
-        console.log('Registration failed:', response.data.message);
+        console.log("Failed Login"); // Handle failed login attempt (e.g., show error message)
       }
     } catch (error) {
-      console.error('Error creating a new user:', error);
+      console.error("Login error:", error);
     }
   };
 
@@ -62,23 +70,12 @@ const RegistrationPage = ({ onRegister }) => {
               />
             </Form.Group>
 
-            <Form.Group controlId="formEmail" className="mb-2">
-              <Form.Label className="mb-0">Email:</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
             <Form.Group controlId="formPassword" className="mb-2">
               <Form.Label className="mb-0">Password:</Form.Label>
               <div className="d-flex align-items-center">
                 <div className="password-input flex-grow-1">
                   <Form.Control
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
@@ -91,15 +88,18 @@ const RegistrationPage = ({ onRegister }) => {
               </div>
             </Form.Group>
 
-
             <Button variant="primary" type="submit">
-              Register
+              Login
             </Button>
+
+            <p>
+              Don't have an account? <Link to="/register">Register</Link>
+            </p>
           </Form>
         </Col>
       </Row>
     </Container>
   );
-};
+}
 
-export default RegistrationPage;
+export default LoginPage;
